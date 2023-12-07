@@ -3,17 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io.wavfile as wavfile
 import pygame
-
-from playsound import playsound
 import os
 
 
 class SoundSynthesis:
     def __init__(self, *args, **kwargs):
         self.fileName = 'whiteNoise.wav'
-        self.deleteOldWav()
+        self.__deleteOldWav()
 
-    def deleteOldWav(self):
+    def __deleteOldWav(self):
         # fileName: a string
         # returns: nothing
         # delete a wav file
@@ -36,20 +34,16 @@ class SoundSynthesis:
         # fileName: a string
         # returns: nothing
         # save as a wav file
-        self.deleteOldWav()
+        self.__deleteOldWav()
         wavfile.write(self.fileName, sampleRate, samples)
 
-    def playWav(self):
+    def playWav(self, time=0):
         # fileName: a string
         # returns: nothing
         # play a wav file
         pygame.init()
         pygame.mixer.music.load(self.fileName)
-        countDown = 3
-        while countDown > 0:
-            print(countDown)
-            countDown -= 1
-            pygame.time.delay(1000)
+        self.__timeCountDown(time)
         pygame.mixer.music.play()
         pygame.event.wait()
 
@@ -63,8 +57,18 @@ class SoundSynthesis:
         fft = np.fft.fft(data)
         plt.xlabel('Frequency')
         plt.ylabel('Amplitude')
-        plt.plot(np.abs(fft))
+        plt.psd(data, Fs=rate, NFFT=1024, scale_by_freq=True, sides='default')
         plt.show()
+
+    def __timeCountDown(self, duration):
+        # duration: in seconds
+        # returns: nothing
+        # count down
+        countDown = duration
+        while countDown > 0:
+            print(countDown)
+            countDown -= 1
+            pygame.time.delay(1000)
 
 
 if __name__ == '__main__':

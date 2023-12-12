@@ -52,3 +52,8 @@ The first priority is to get the M(filter). Then set M to the speaker. Finally, 
     In Process
 
 """
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+

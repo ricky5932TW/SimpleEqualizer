@@ -1,7 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io import wavfile
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.io import wavfile
+
 '''
 # Define Harman curve frequency response
 f = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
@@ -58,8 +60,8 @@ class NoiseGenerator:
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
-        self.h = np.array([4, 4, -3, 0, 10, 1, -20])
+        self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000, 40000])
+        self.h = np.array([4, 4, -3, 0, 10, 1, -20, -80])
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
             if kwargs['reverse'] == True:

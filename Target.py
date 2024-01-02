@@ -30,7 +30,7 @@ class Target:
         plt.plot(data[:, 0], data[:, 1], 'bo-')
         plt.grid()
         plt.xlabel('Frequency')
-        plt.xscale('log')
+        plt.xscale('log.txt')
         plt.ylabel('Amplitude')
         plt.show()
 

@@ -98,7 +98,7 @@ class SoundSynthesis(multiadd):
         plt.subplot(211)
         plt.xlabel('Frequency')
         plt.ylabel('Amplitude')
-        plt.xscale('log')
+        plt.xscale('log.txt')
         plt.xlim(0, 20000)
         plt.psd(fft, Fs=rate*2, NFFT=128, scale_by_freq=True, sides='default')
         plt.grid()

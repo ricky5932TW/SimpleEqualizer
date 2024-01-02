@@ -1,0 +1,24 @@
+before 2024/1/2
+    developing ideas & structure
+    It can do
+        1. make noise with a given gain
+        2. make noise and record it at the same time
+
+
+2024/1/2 - 2024/1/9
+    1. finish the tuning functions
+        i. Doing fft for the recorded data
+        ii. find the sensitive between gain variable in python and real speaker system
+        iii by the sensitive we found, determine the bandwith of the speaker system
+        iv. tune the frequency by the given frequency and the bandwith
+    2. check if it can work
+        i. Doing fft for the final result
+        ii. check if the spectrum is what we want
+
+to-arrange
+1. ui
+    i. pyqt6
+    ii. new class for ui to help update the information on it
+
+2024/1/20 finish the first version of the project
+2024/1/30 rearrange the code and make it more readable and the whole project include the paper

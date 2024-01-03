@@ -94,9 +94,9 @@ class NoiseGenerator:
         self.harman_response[0] = 0  # avoid DC component gain
 
     def __apply(self):
-        self.noise_psd = np.abs(np.fft.fft(self.__noise)) ** 2 / self.__sample
-        self.harman_psd = self.noise_psd * self.harman_response ** 2
-        self.noise_harman = np.real(np.fft.ifft(np.sqrt(self.harman_psd) * np.exp(1j * np.angle(np.fft.fft(self.__noise)))))
+        self.noise_psd = np.abs(np.fft.fft(self.__noise)) ** 2 / self.__sample  # power spectral density
+        self.harman_psd = self.noise_psd * self.harman_response ** 2    # apply harman curve
+        self.noise_harman = np.real(np.fft.ifft(np.sqrt(self.harman_psd) * np.exp(1j * np.angle(np.fft.fft(self.__noise)))))    # apply inverse fft
         self.__result = self.noise_harman
 
     def generate(self):

@@ -15,10 +15,14 @@ import scipy.signal as signal
 class SoundAnalyzer(NoiseGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.averageGain = None
+        self.ana_gain = []
+        self.ana_frequency = None
         self.r_fft = None
         self.fileName = 'noise.wav'
         self.__closeflag = False
         self.fftData = None
+        self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
 
     def playandRecord(self):
         # play noise.wav and record the sound at the same time by threading
@@ -91,12 +95,12 @@ class SoundAnalyzer(NoiseGenerator):
         waveData, framerate = self.__readWav(wave)  # read the wave file
         self.r_fft = np.fft.rfft(waveData)  # do fft
         self.r_fft = np.abs(self.r_fft / max(self.r_fft))  # normalize
-        frequency = np.fft.rfftfreq(len(self.r_fft), d=1 / framerate)  # get the frequency
+        self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1 / framerate)  # get the frequency
         if plot:  # plot the result
             plt.xscale('symlog')
             plt.xlim(1, 20000)
             plt.grid()
-            plt.plot(frequency[:len(frequency)], 10 * np.log10(self.r_fft[:len(frequency)]))
+            plt.plot(self.ana_frequency[:len(self.ana_frequency)], 10 * np.log10(self.r_fft[:len(self.ana_frequency)]))
             plt.xlabel('Frequency')
             plt.ylabel('Gain')
             plt.show()
@@ -112,23 +116,47 @@ class SoundAnalyzer(NoiseGenerator):
         f.close()
         return waveData, framerate
 
+    '''
     def set1000Hzas1dB(self):
         # set the 1000Hz as 1dB
         gain1000 = self.find_nearest(self.r_fft, 1000)
         print(gain1000)
         self.r_fft = self.r_fft - gain1000 + 1
+    '''
 
     def getgain(self, freq):
         # get the gain of the frequency
         # return: float
         pass
 
-    def find_nearest(self, array, value):
+    def find_nearest(self, array, value, position=False):
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
-        return array[idx]
+        if position:
+            return idx
+        else:
+            return array[idx]
+
+    def shapeCurve(self):
+        #find the gain of distance between the 1000hz and each point
+        self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+        for point in self.points:
+            position = self.find_nearest(self.ana_frequency, point, position=True)
+            self.ana_gain.append(self.r_fft[position])
+        print(self.ana_gain)
+
+    def average(self):
+        # find overall average gain
+        self.averageGain = np.average(self.r_fft[:len(self.ana_frequency)])
+        print(self.averageGain)
+
+
+
+
 
 
 if __name__ == '__main__':
     soundAnalyzer = SoundAnalyzer()
     soundAnalyzer.fft("record.wav", plot=True)
+    soundAnalyzer.shapeCurve()
+    soundAnalyzer.average()

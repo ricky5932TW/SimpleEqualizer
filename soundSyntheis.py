@@ -53,7 +53,7 @@ plt.show()
 
 # package it by class
 class NoiseGenerator:
-    def __init__(self, duration=5, sampleRate=384000, *args, **kwargs):
+    def __init__(self, name='noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
         super().__init__()
         self.__duration = duration
         self.__sampleRate = sampleRate
@@ -62,6 +62,7 @@ class NoiseGenerator:
         self.__noise = np.random.randn(self.__sample)
         self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000, 40000])
         self.h = np.array([4, 4, -3, 0, 10, 1, -20, -80])
+        self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
             if kwargs['reverse'] == True:
@@ -87,8 +88,8 @@ class NoiseGenerator:
             self.h = newFreq
 
     def __interpolate(self):
-        self.freqs = np.fft.fftfreq(self.__sample, d=1 / self.__sampleRate)
-        self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f), self.h)
+        self.freqs = np.fft.fftfreq(self.__sample, d=1 / self.__sampleRate) # get the frequency
+        self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f), self.h)   # interpolate harman curve
         self.harman_response = np.zeros(self.__sample)
         self.harman_response[self.freqs > 0] = 10 ** (self.interp_h / 20)  # convert dB to linear scale
         self.harman_response[0] = 0  # avoid DC component gain
@@ -107,11 +108,11 @@ class NoiseGenerator:
     def saveWav(self):
         try:
             #remove old file
-            os.remove('noise.wav')
+            os.remove(self.name)
         except:
             pass
         scaled = np.int16(self.__result / np.max(np.abs(self.__result)) * 32767)
-        wavfile.write('noise.wav', self.__sampleRate, scaled)
+        wavfile.write(self.name, self.__sampleRate, scaled)
 
     def plot(self):
         fig, (ax1, ax2) = plt.subplots(2, 1)
@@ -130,6 +131,8 @@ class NoiseGenerator:
 
 if __name__ == '__main__':
     noise = NoiseGenerator(reverse=True)
+    noise.h = noise.h + 10
+    noise.name = 'noise+10dB.wav'
     noise.generate()
     noise.saveWav()
     noise.plot()

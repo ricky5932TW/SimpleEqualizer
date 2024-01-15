@@ -30,3 +30,6 @@ to-arrange
 -----------------2024/1/4-----------------
 1. new function to find overall gain
 2. new function can find the corresponding gain for each frequency
+
+-----------------2024/1/15-----------------
+1. design how to tune the gain defination between eq and code

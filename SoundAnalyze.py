@@ -19,7 +19,6 @@ def timing(func):
         func(*args, **kwargs)
         end = time.time() - start
         print('time: ', end)
-
     return wrapper
 
 
@@ -96,16 +95,6 @@ class SoundAnalyzer(NoiseGenerator):
         except:
             pass
 
-    def countTime(self):
-        t = 0
-        self.__closeflag = False
-        while True:
-            print(t)
-            t += 1
-            time.sleep(1)
-            if self.__closeflag:
-                break
-
     def fft(self, wave, plot=False, sensitivity=False):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
@@ -161,7 +150,7 @@ class SoundAnalyzer(NoiseGenerator):
         else:
             return array[idx]
 
-    def shapeCurve(self):
+    def getSeparateGain(self):
         # find the gain of distance between the 1000hz and each point
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         for point in self.points:
@@ -169,10 +158,11 @@ class SoundAnalyzer(NoiseGenerator):
             self.ana_gain.append(self.r_fft[position])
         print(self.ana_gain)
 
-    def average(self):
+
+    def averageTheGain(self):
         # find overall average gain
         self.averageGain = np.average(self.r_fft[:len(self.ana_frequency)])
-        # print(self.averageGain)
+        print(self.averageGain)
 
 
 '''
@@ -194,5 +184,7 @@ class SoundAnalyzer(NoiseGenerator):
 if __name__ == '__main__':
     soundAnalyzer = SoundAnalyzer()
     #soundAnalyzer.playandRecord()
-    soundAnalyzer.fft('noise.wav', plot=True)
-# soundAnalyzer.systemSensitivity()
+    soundAnalyzer.fft('noise.wav', plot=False)
+    #soundAnalyzer.systemSensitivity()
+    soundAnalyzer.getSeparateGain()
+    soundAnalyzer.averageTheGain()

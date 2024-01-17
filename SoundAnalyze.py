@@ -142,27 +142,31 @@ class SoundAnalyzer(NoiseGenerator):
         self.r_fft = self.r_fft - gain1000 + 1
     '''
 
-    def find_nearest(self, array, value, position=False):
+    def find_nearest(self, array, value, position=False, range=100):
         array = np.asarray(array)
+        # find the nearest value around target 100Hz in the array
         idx = (np.abs(array - value)).argmin()
+
         if position:
             return idx
         else:
             return array[idx]
 
-    def getSeparateGain(self):
+    def getSeparateGain(self,range=100):
         # find the gain of distance between the 1000hz and each point
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)
-            self.ana_gain.append(self.r_fft[position])
+            self.ana_gain.append(10*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range])))
         print(self.ana_gain)
 
 
     def averageTheGain(self):
         # find overall average gain
-        self.averageGain = np.average(self.r_fft[:len(self.ana_frequency)])
+        self.averageGain = 10*np.log(np.average(self.r_fft[:len(self.ana_frequency)]))
         print(self.averageGain)
+
+
 
 
 '''
@@ -182,9 +186,15 @@ class SoundAnalyzer(NoiseGenerator):
 '''
 
 if __name__ == '__main__':
-    soundAnalyzer = SoundAnalyzer()
+    eqSYS_0 = SoundAnalyzer()
     #soundAnalyzer.playandRecord()
-    soundAnalyzer.fft('noise.wav', plot=False)
+    eqSYS_0.fft('noise.wav', plot=1)
     #soundAnalyzer.systemSensitivity()
-    soundAnalyzer.getSeparateGain()
-    soundAnalyzer.averageTheGain()
+    eqSYS_0.getSeparateGain()
+    eqSYS_0.averageTheGain()
+
+    eqSYS_10 = SoundAnalyzer()
+    eqSYS_10.fft('noise+10dB.wav', plot=1)
+    eqSYS_10.getSeparateGain()
+    eqSYS_10.averageTheGain()
+

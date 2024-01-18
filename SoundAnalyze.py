@@ -1,3 +1,4 @@
+import scipy
 from matplotlib import pyplot as plt
 
 from Target import Target
@@ -98,27 +99,34 @@ class SoundAnalyzer(NoiseGenerator):
     def fft(self, wave, plot=False, sensitivity=False):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
+        waveData = waveData * np.hamming(len(waveData))  # apply hamming window
+
         if not sensitivity:
             self.r_fft = np.fft.rfft(waveData)  # do fft
-            self.r_fft = np.abs(self.r_fft / max(self.r_fft))# normalize
+            self.r_fft = np.abs(self.r_fft / max(self.r_fft))  # normalize the fft result
+            self.r_fft = signal.windows.hamming(len(self.r_fft))*self.r_fft # apply blackman window
+            #self.r_fft = signal.savgol_filter(self.r_fft, 8, 1)  # smooth the fft result
             self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1 / framerate)  # get the frequency
             x = self.ana_frequency[:len(self.ana_frequency)]
-            y = 10 * np.log10(self.r_fft[:len(self.ana_frequency)])
+            y = 60 * np.log10(self.r_fft[:len(self.ana_frequency)]) +70
         else:
             self.r_fft_10dB = np.fft.rfft(waveData)
             self.r_fft_10dB = np.abs(self.r_fft_10dB / max(self.r_fft_10dB))
             self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate)
             x = self.ana_frequency_10dB[:len(self.ana_frequency_10dB)]
-            y = 10 * np.log10(self.r_fft_10dB[:len(self.ana_frequency_10dB)])
+            y = self.r_fft_10dB[:len(self.ana_frequency_10dB)]
 
         if plot:  # plot the result
+            # biggest 30% of the fft result
             plt.plot(x, y)
             plt.xlabel('Frequency (Hz)')
             plt.ylabel('Magnitude (dB)')
             plt.title('FFT of Signal')
-            plt.grid()
+
             plt.xlim(20, 20000)
-            plt.xscale('symlog')
+            plt.ylim(-40, 10)
+            plt.xscale('log')
+            plt.grid()
             plt.show()
             # save the figure
             # fig.savefig('fft10db.png')
@@ -154,10 +162,11 @@ class SoundAnalyzer(NoiseGenerator):
 
     def getSeparateGain(self,range=100):
         # find the gain of distance between the 1000hz and each point
-        self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+        self.points = [20, 40, 210, 1000, 3000, 9000, 20000, 40000]
+            #[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)
-            self.ana_gain.append(10*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range])))
+            self.ana_gain.append(60*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range]))+220)
         print(self.ana_gain)
 
 
@@ -192,9 +201,9 @@ if __name__ == '__main__':
     #soundAnalyzer.systemSensitivity()
     eqSYS_0.getSeparateGain()
     eqSYS_0.averageTheGain()
-
+'''
     eqSYS_10 = SoundAnalyzer()
     eqSYS_10.fft('noise+10dB.wav', plot=1)
     eqSYS_10.getSeparateGain()
     eqSYS_10.averageTheGain()
-
+'''

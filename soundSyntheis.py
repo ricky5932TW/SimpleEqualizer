@@ -129,10 +129,36 @@ class NoiseGenerator:
         ax2.set_ylim([-15, 20])
         plt.show()
 
+    def makingTESTNoise(self):
+       """make 20+200+2000+20000Hz noise from numpy.sin"""
+       # 20Hz
+       noise20 = np.sin(2 * np.pi * 20 * np.arange(self.__sample) / self.__sampleRate)
+       # 200Hz
+       noise200 = np.sin(2 * np.pi * 200 * np.arange(self.__sample) / self.__sampleRate)
+       # 2000Hz
+       noise2000 = np.sin(2 * np.pi * 2000 * np.arange(self.__sample) / self.__sampleRate)
+       # 20000Hz
+       noise20000 = np.sin(2 * np.pi * 19000 * np.arange(self.__sample) / self.__sampleRate)
+       # add them together
+       noise = noise20 + noise200 + noise2000 + noise20000
+
+
+       try:
+          #save the file
+          scaled = np.int16(noise/ np.max(np.abs(noise)) * 32767)
+          wavfile.write("TestWav.wav", self.__sampleRate, scaled)
+       except:
+          os.remove("TestWav.wav")
+          scaled = np.int16(noise/ np.max(np.abs(noise)) * 32767)
+          wavfile.write("TestWav.wav", self.__sampleRate, scaled)
+
+
+
+
+
 if __name__ == '__main__':
-    noise = NoiseGenerator(reverse=True)
-    noise.h = noise.h + 10
-    noise.name = 'noise+10dB.wav'
-    noise.generate()
+    noise = NoiseGenerator()
+    result = noise.generate()
     noise.saveWav()
     noise.plot()
+

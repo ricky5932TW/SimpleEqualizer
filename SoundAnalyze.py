@@ -104,15 +104,17 @@ class SoundAnalyzer(NoiseGenerator):
         if not sensitivity:
             self.r_fft = np.fft.rfft(waveData)  # do fft
             self.r_fft = np.abs(self.r_fft / max(self.r_fft))  # normalize the fft result
-            self.r_fft = signal.windows.hamming(len(self.r_fft))*self.r_fft # apply blackman window
-            #self.r_fft = signal.savgol_filter(self.r_fft, 8, 1)  # smooth the fft result
-            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1 / framerate)  # get the frequency
+            self.r_fft = np.hamming(len(self.r_fft))*self.r_fft # apply hamming window
+            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate*4)  # get the frequency
+            """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
+            384000Hz, quad when it is 762000Hz. I don't know why"""
             x = self.ana_frequency[:len(self.ana_frequency)]
-            y = 60 * np.log10(self.r_fft[:len(self.ana_frequency)]) +70
+            y = 10 * np.log10(self.r_fft[:len(self.ana_frequency)])
         else:
             self.r_fft_10dB = np.fft.rfft(waveData)
             self.r_fft_10dB = np.abs(self.r_fft_10dB / max(self.r_fft_10dB))
-            self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate)
+            self.r_fft_10dB = np.hamming(len(self.r_fft_10dB)) * self.r_fft_10dB
+            self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate*4)
             x = self.ana_frequency_10dB[:len(self.ana_frequency_10dB)]
             y = self.r_fft_10dB[:len(self.ana_frequency_10dB)]
 
@@ -124,7 +126,7 @@ class SoundAnalyzer(NoiseGenerator):
             plt.title('FFT of Signal')
 
             plt.xlim(20, 20000)
-            plt.ylim(-40, 10)
+            plt.ylim(-30, 5)
             plt.xscale('log')
             plt.grid()
             plt.show()
@@ -160,13 +162,13 @@ class SoundAnalyzer(NoiseGenerator):
         else:
             return array[idx]
 
-    def getSeparateGain(self,range=100):
+    def getSeparateGain(self, range=90):
         # find the gain of distance between the 1000hz and each point
         self.points = [20, 40, 210, 1000, 3000, 9000, 20000, 40000]
             #[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)
-            self.ana_gain.append(60*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range]))+220)
+            self.ana_gain.append(10*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range])))
         print(self.ana_gain)
 
 

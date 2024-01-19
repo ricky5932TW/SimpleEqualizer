@@ -33,3 +33,7 @@ to-arrange
 
 -----------------2024/1/15-----------------
 1. design how to tune the gain defination between eq and code
+
+-----------------2024/1/16 -> 1/19-----------------
+1. fix dumb fft problem
+2. Source wac sampling rate and depth from 384kHz to 768kHz and 16bit to 64bit

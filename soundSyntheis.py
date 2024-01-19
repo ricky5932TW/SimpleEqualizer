@@ -53,7 +53,7 @@ plt.show()
 
 # package it by class
 class NoiseGenerator:
-    def __init__(self, name='noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
+    def __init__(self, name='noise.wav', duration=5, sampleRate=768000, *args, **kwargs):
         super().__init__()
         self.__duration = duration
         self.__sampleRate = sampleRate
@@ -145,11 +145,11 @@ class NoiseGenerator:
 
        try:
           #save the file
-          scaled = np.int16(noise/ np.max(np.abs(noise)) * 32767)
+          scaled = np.int16(noise/ np.max(np.abs(noise)) * 2**63-1)
           wavfile.write("TestWav.wav", self.__sampleRate, scaled)
        except:
           os.remove("TestWav.wav")
-          scaled = np.int16(noise/ np.max(np.abs(noise)) * 32767)
+          scaled = np.int64(noise/ np.max(np.abs(noise)) * 2**63-1)
           wavfile.write("TestWav.wav", self.__sampleRate, scaled)
 
 

@@ -67,7 +67,7 @@ class SoundAnalyzer(NoiseGenerator):
         CHUNK = 2048  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
         CHANNELS = 1  # 单声道
-        RATE = 192000  # 采样频率
+        RATE = 762000  # 采样频率
         """ 录音功能 """
         p = pyaudio.PyAudio()  # 实例化对象
         stream = p.open(format=FORMAT,
@@ -105,7 +105,7 @@ class SoundAnalyzer(NoiseGenerator):
             self.r_fft = np.fft.rfft(waveData)  # do fft
             self.r_fft = np.abs(self.r_fft / max(self.r_fft))  # normalize the fft result
             self.r_fft = np.hamming(len(self.r_fft))*self.r_fft # apply hamming window
-            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate*4)  # get the frequency
+            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate*2)  # get the frequency
             """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
             384000Hz, quad when it is 762000Hz. I don't know why"""
             x = self.ana_frequency[:len(self.ana_frequency)]
@@ -164,7 +164,7 @@ class SoundAnalyzer(NoiseGenerator):
 
     def getSeparateGain(self, range=90):
         # find the gain of distance between the 1000hz and each point
-        self.points = [20, 40, 210, 1000, 3000, 9000, 20000, 40000]
+        self.points = [20, 40, 210, 1000, 3000, 9000, 20000]
             #[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)

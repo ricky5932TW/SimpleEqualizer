@@ -2,6 +2,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 from scipy.io import wavfile
 
 '''
@@ -53,15 +54,15 @@ plt.show()
 
 # package it by class
 class NoiseGenerator:
-    def __init__(self, name='noise.wav', duration=5, sampleRate=768000, *args, **kwargs):
+    def __init__(self, name='noise.wav', duration=5, sampleRate=762000, *args, **kwargs):
         super().__init__()
         self.__duration = duration
         self.__sampleRate = sampleRate
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000, 40000])
-        self.h = np.array([4, 4, -3, 0, 10, 1, -20, -80])
+        self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
+        self.h = np.array([4, 4, -3, 0, 10, 1, -20])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -106,12 +107,20 @@ class NoiseGenerator:
         return self.__result
 
     def saveWav(self):
+        cutoff_frequency = 40000
         try:
             #remove old file
             os.remove(self.name)
         except:
             pass
-        scaled = np.int16(self.__result / np.max(np.abs(self.__result)) * 32767)
+        scaled = np.int32(self.__result / np.max(np.abs(self.__result)) * (2**31-1))
+
+        # Apply the low-pass filter
+        nyquist_frequency = self.__sampleRate / 2.0
+        critical_freq = cutoff_frequency / nyquist_frequency
+        b, a = scipy.signal.butter(8, critical_freq, 'low')
+        filtered_signal = scipy.signal.lfilter(b, a, scaled)
+
         wavfile.write(self.name, self.__sampleRate, scaled)
 
     def plot(self):
@@ -157,7 +166,7 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator()
+    noise = NoiseGenerator(reverse=1)
     result = noise.generate()
     noise.saveWav()
     noise.plot()

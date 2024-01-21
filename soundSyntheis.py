@@ -52,6 +52,7 @@ ax2.set_ylim([-15, 20])
 plt.show()
 '''
 
+
 # package it by class
 class NoiseGenerator:
     def __init__(self, name='noise.wav', duration=5, sampleRate=762000, *args, **kwargs):
@@ -89,16 +90,18 @@ class NoiseGenerator:
             self.h = newFreq
 
     def __interpolate(self):
-        self.freqs = np.fft.fftfreq(self.__sample, d=1 / self.__sampleRate) # get the frequency
-        self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f), self.h)   # interpolate harman curve
+        self.freqs = np.fft.fftfreq(self.__sample, d=1 / self.__sampleRate)  # get the frequency
+        self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f),
+                                  self.h)  # interpolate harman curve
         self.harman_response = np.zeros(self.__sample)
         self.harman_response[self.freqs > 0] = 10 ** (self.interp_h / 20)  # convert dB to linear scale
         self.harman_response[0] = 0  # avoid DC component gain
 
     def __apply(self):
         self.noise_psd = np.abs(np.fft.fft(self.__noise)) ** 2 / self.__sample  # power spectral density
-        self.harman_psd = self.noise_psd * self.harman_response ** 2    # apply harman curve
-        self.noise_harman = np.real(np.fft.ifft(np.sqrt(self.harman_psd) * np.exp(1j * np.angle(np.fft.fft(self.__noise)))))    # apply inverse fft
+        self.harman_psd = self.noise_psd * self.harman_response ** 2  # apply harman curve
+        self.noise_harman = np.real(np.fft.ifft(
+            np.sqrt(self.harman_psd) * np.exp(1j * np.angle(np.fft.fft(self.__noise)))))  # apply inverse fft
         self.__result = self.noise_harman
 
     def generate(self):
@@ -109,11 +112,11 @@ class NoiseGenerator:
     def saveWav(self):
         cutoff_frequency = 40000
         try:
-            #remove old file
+            # remove old file
             os.remove(self.name)
         except:
             pass
-        scaled = np.int32(self.__result / np.max(np.abs(self.__result)) * (2**31-1))
+        scaled = np.int32(self.__result / np.max(np.abs(self.__result)) * (2 ** 31 - 1))
 
         # Apply the low-pass filter
         nyquist_frequency = self.__sampleRate / 2.0
@@ -128,7 +131,7 @@ class NoiseGenerator:
         ax1.plot(np.linspace(0, self.__duration, self.__sample), self.__result)
         ax1.set_xlabel('Time (s)')
         ax1.set_ylabel('Amplitude')
-        ax2.semilogx(self.freqs[self.freqs > 0], 10 * np.log10(self.harman_psd[self.freqs > 0]))
+        ax2.semilogx(self.freqs[self.freqs > 0], 20 * np.log10(self.harman_psd[self.freqs > 0]))
         ax2.set_xlabel('Frequency (Hz)')
         ax2.set_ylabel('Power (dB)')
         # grid
@@ -139,35 +142,31 @@ class NoiseGenerator:
         plt.show()
 
     def makingTESTNoise(self):
-       """make 20+200+2000+20000Hz noise from numpy.sin"""
-       # 20Hz
-       noise20 = np.sin(2 * np.pi * 20 * np.arange(self.__sample) / self.__sampleRate)
-       # 200Hz
-       noise200 = np.sin(2 * np.pi * 200 * np.arange(self.__sample) / self.__sampleRate)
-       # 2000Hz
-       noise2000 = np.sin(2 * np.pi * 2000 * np.arange(self.__sample) / self.__sampleRate)
-       # 20000Hz
-       noise20000 = np.sin(2 * np.pi * 19000 * np.arange(self.__sample) / self.__sampleRate)
-       # add them together
-       noise = noise20 + noise200 + noise2000 + noise20000
+        """make 20+200+2000+20000Hz noise from numpy.sin"""
+        # 20Hz
+        noise20 = np.sin(2 * np.pi * 20 * np.arange(self.__sample) / self.__sampleRate)
+        # 200Hz
+        noise200 = np.sin(2 * np.pi * 200 * np.arange(self.__sample) / self.__sampleRate)
+        # 2000Hz
+        noise2000 = np.sin(2 * np.pi * 2000 * np.arange(self.__sample) / self.__sampleRate)
+        # 20000Hz
+        noise20000 = np.sin(2 * np.pi * 19000 * np.arange(self.__sample) / self.__sampleRate)
+        # add them together
+        noise = noise20 + noise200 + noise2000 + noise20000
 
-
-       try:
-          #save the file
-          scaled = np.int16(noise/ np.max(np.abs(noise)) * 2**63-1)
-          wavfile.write("TestWav.wav", self.__sampleRate, scaled)
-       except:
-          os.remove("TestWav.wav")
-          scaled = np.int64(noise/ np.max(np.abs(noise)) * 2**63-1)
-          wavfile.write("TestWav.wav", self.__sampleRate, scaled)
-
-
-
+        try:
+            # save the file
+            scaled = np.int16(noise / np.max(np.abs(noise)) * 2 ** 63 - 1)
+            wavfile.write("TestWav.wav", self.__sampleRate, scaled)
+        except:
+            os.remove("TestWav.wav")
+            scaled = np.int64(noise / np.max(np.abs(noise)) * 2 ** 63 - 1)
+            wavfile.write("TestWav.wav", self.__sampleRate, scaled)
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(reverse=1)
+    noise = NoiseGenerator(name='noise+5dB.wav', reverse=True)
+    noise.h = noise.h + 5
     result = noise.generate()
     noise.saveWav()
     noise.plot()
-

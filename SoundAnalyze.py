@@ -1,6 +1,6 @@
 import scipy
 from matplotlib import pyplot as plt
-
+import pandas as pd
 from Target import Target
 from soundSyntheis import NoiseGenerator
 import pygame
@@ -20,12 +20,14 @@ def timing(func):
         func(*args, **kwargs)
         end = time.time() - start
         print('time: ', end)
+
     return wrapper
 
 
 class SoundAnalyzer(NoiseGenerator):
     def __init__(self, fileName='noise.wav', *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.csvFileName = None
         self.ana_frequency_10dB = None
         self.r_fft_10dB = None
         self.averageGain = None
@@ -103,18 +105,19 @@ class SoundAnalyzer(NoiseGenerator):
 
         if not sensitivity:
             self.r_fft = np.fft.rfft(waveData)  # do fft
-            self.r_fft = np.abs(self.r_fft / max(self.r_fft))  # normalize the fft result
-            self.r_fft = np.hamming(len(self.r_fft))*self.r_fft # apply hamming window
-            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate*2)  # get the frequency
+            #self.r_fft = self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]
+            self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
+            self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
+            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
             """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
             384000Hz, quad when it is 762000Hz. I don't know why"""
             x = self.ana_frequency[:len(self.ana_frequency)]
-            y = 10 * np.log10(self.r_fft[:len(self.ana_frequency)])
+            y = 20 * np.log10(self.r_fft[:len(self.ana_frequency)])
         else:
             self.r_fft_10dB = np.fft.rfft(waveData)
             self.r_fft_10dB = np.abs(self.r_fft_10dB / max(self.r_fft_10dB))
             self.r_fft_10dB = np.hamming(len(self.r_fft_10dB)) * self.r_fft_10dB
-            self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate*4)
+            self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate * 4)
             x = self.ana_frequency_10dB[:len(self.ana_frequency_10dB)]
             y = self.r_fft_10dB[:len(self.ana_frequency_10dB)]
 
@@ -126,7 +129,7 @@ class SoundAnalyzer(NoiseGenerator):
             plt.title('FFT of Signal')
 
             plt.xlim(20, 20000)
-            plt.ylim(-30, 5)
+            #plt.ylim(80, 115)
             plt.xscale('log')
             plt.grid()
             plt.show()
@@ -144,15 +147,7 @@ class SoundAnalyzer(NoiseGenerator):
         f.close()
         return waveData, framerate
 
-    '''
-    def set1000Hzas1dB(self):
-        # set the 1000Hz as 1dB
-        gain1000 = self.find_nearest(self.r_fft, 1000)
-        print(gain1000)
-        self.r_fft = self.r_fft - gain1000 + 1
-    '''
-
-    def find_nearest(self, array, value, position=False, range=100):
+    def find_nearest(self, array, value, position=False):
         array = np.asarray(array)
         # find the nearest value around target 100Hz in the array
         idx = (np.abs(array - value)).argmin()
@@ -162,47 +157,42 @@ class SoundAnalyzer(NoiseGenerator):
         else:
             return array[idx]
 
-    def getSeparateGain(self, range=90):
+    def getSeparateGain(self, range=100):
         # find the gain of distance between the 1000hz and each point
-        self.points = [20, 40, 210, 1000, 3000, 9000, 20000]
-            #[32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+        self.points = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
         for point in self.points:
-            position = self.find_nearest(self.ana_frequency, point, position=True)
-            self.ana_gain.append(10*np.log(np.average(self.r_fft[position-min(range,self.points[0]):position+range])))
+            position = self.find_nearest(self.ana_frequency, point, position=1)
+            self.ana_gain.append(
+                20 * np.log(np.mean(self.r_fft[position - min(range, point):position + range])))
         print(self.ana_gain)
-
+        self.saveRawData()
 
     def averageTheGain(self):
         # find overall average gain
-        self.averageGain = 10*np.log(np.average(self.r_fft[:len(self.ana_frequency)]))
+        self.averageGain = 20 * np.log(
+            np.average(self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]))
         print(self.averageGain)
 
+    def saveRawData(self, fileName='rawData.csv'):
+        # delete the old file
+        try:
+            os.remove(fileName)
+        except:
+            pass
+        # save with pandas
+        df = pd.DataFrame({'freqs': self.points, 'gain': self.ana_gain})
+        df.to_csv(fileName, index=False)
 
-
-
-'''
-    def systemSensitivity(self):
-        # find the system sensitivity
-        #self.playandRecord(load='noise+10dB.wav', wave_out_path="record+10dB.wav", record_second=3)
-        self.fft('record+10dB.wav', sensitivity=True, plot=True)
-        # plot the sensitivity after giving 10dB
-        self.x_gainSen = self.ana_frequency_10dB[:len(self.ana_frequency_10dB)]-self.ana_frequency[:len(self.ana_frequency)]
-        plt.xscale('symlog')
-        plt.xlim(1, 20000)
-        plt.grid()
-        plt.plot(self.x_gainSen, 10 * np.log10(self.r_fft_10dB[:len(self.ana_frequency_10dB)]))
-        plt.xlabel('Frequency')
-        plt.ylabel('Gain')
-        plt.show()
-'''
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
-    #soundAnalyzer.playandRecord()
-    eqSYS_0.fft('noise.wav', plot=1)
-    #soundAnalyzer.systemSensitivity()
+    # soundAnalyzer.playandRecord()
+    eqSYS_0.fft('noise.wav', plot=True)
+    # soundAnalyzer.systemSensitivity()
     eqSYS_0.getSeparateGain()
     eqSYS_0.averageTheGain()
+    eqSYS_0.saveRawData(fileName='noise.csv')
+
 '''
     eqSYS_10 = SoundAnalyzer()
     eqSYS_10.fft('noise+10dB.wav', plot=1)

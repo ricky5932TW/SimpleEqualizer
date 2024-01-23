@@ -55,7 +55,7 @@ plt.show()
 
 # package it by class
 class NoiseGenerator:
-    def __init__(self, name='noise.wav', duration=5, sampleRate=762000, *args, **kwargs):
+    def __init__(self, name='noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
         super().__init__()
         self.__duration = duration
         self.__sampleRate = sampleRate
@@ -110,7 +110,7 @@ class NoiseGenerator:
         return self.__result
 
     def saveWav(self):
-        cutoff_frequency = 40000
+        cutoff_frequency = 20000
         try:
             # remove old file
             os.remove(self.name)
@@ -131,7 +131,7 @@ class NoiseGenerator:
         ax1.plot(np.linspace(0, self.__duration, self.__sample), self.__result)
         ax1.set_xlabel('Time (s)')
         ax1.set_ylabel('Amplitude')
-        ax2.semilogx(self.freqs[self.freqs > 0], 20 * np.log10(self.harman_psd[self.freqs > 0]))
+        ax2.semilogx(self.freqs[self.freqs > 0], 10 * np.log10(self.harman_psd[self.freqs > 0]))
         ax2.set_xlabel('Frequency (Hz)')
         ax2.set_ylabel('Power (dB)')
         # grid
@@ -165,8 +165,8 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='noise+5dB.wav', reverse=True)
-    noise.h = noise.h + 5
+    noise = NoiseGenerator(name='noise.wav', reverse=True)
+    noise.h = noise.h
     result = noise.generate()
     noise.saveWav()
     noise.plot()

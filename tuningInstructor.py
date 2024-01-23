@@ -36,10 +36,15 @@ class TuningInstuctor():
         print(data)
         print(self.criticalFreqs)
         print(self.gains)
-        plt.plot(self.criticalFreqs, self.gains)
-        plt.plot((0,20000), (self.averageGain,self.averageGain), '--')
+        plt.plot(self.criticalFreqs, self.gains, label='responce')
+        plt.plot((0,20000), (self.averageGain,self.averageGain), '--', label='average(target)')
         plt.xscale('log')
         plt.grid(True, which="both")
+        plt.title('Spectrum')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Gain (dB)')
+        plt.savefig('spectrum.png')
+        plt.legend()
         plt.show()
         return True
 

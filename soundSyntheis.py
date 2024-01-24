@@ -63,7 +63,7 @@ class NoiseGenerator:
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
         self.f = np.array([20, 40, 210, 1000, 3000, 9000, 20000,30000])
-        self.h = np.array([6, 6, -3, 0, 10, 1, -80,-80])
+        self.h = np.array([6, 6, -3, 0, 10, 1, -20,-80])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:

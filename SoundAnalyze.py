@@ -111,7 +111,7 @@ class SoundAnalyzer(NoiseGenerator):
             self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
             self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
             # smooth the data
-            self.r_fft = signal.savgol_filter(self.r_fft, 51, 3)
+            self.r_fft = signal.savgol_filter(self.r_fft, 73, 3)
             self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
             """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
             384000Hz, quad when it is 762000Hz. I don't know why"""
@@ -267,21 +267,23 @@ class SoundAnalyzer(NoiseGenerator):
             # 0.3 *new data
             count = 0
             for i in range(len(x)):
-                if np.abs(y[i] - oldCsvY[i]) < 3:
+                if np.abs(y[i] - oldCsvY[i]) < 1:
                     y[i] = oldCsvY[i]
                 else:
-                    y[i] = oldCsvY[i] + 0.01 * y[i]
+                    y[i] = oldCsvY[i] +  0.1* y[i]
                     count += 1
             print(str(count) + ' / ' + str(len(x)))
+        #smooth the data
+        y = signal.savgol_filter(y, 121, 2)
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
-    eqSYS_0.playandRecord()
+    #eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
     # soundAnalyzer.systemSensitivity()
     #eqSYS_0.averageTheGain()
     #eqSYS_0.getSeparateGain()
-    eqSYS_0.saveRawData(optimize=True)
+    #eqSYS_0.saveRawData(optimize=True)

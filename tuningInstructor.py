@@ -6,6 +6,7 @@ import pandas
 class TuningInstuctor():
     def __init__(self, filename=None, averageGainFile=None,*args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.gainAndFreq = None
         self.CSVFileName = filename
         self.averageGainFile = averageGainFile
         self.averageGain = None
@@ -13,6 +14,7 @@ class TuningInstuctor():
         self.status = None
         self.criticalFreqs = None
         self.gains = None
+        self.instruction = None
 
     def loadAverageGain(self):
         with open(self.averageGainFile, 'r') as f:
@@ -33,20 +35,43 @@ class TuningInstuctor():
         self.status = 'loadCSV'
         self.criticalFreqs = np.array(data['freqs'])
         self.gains = np.array(data['gain'])
+        # combine the data into dict
+        data = dict(zip(self.criticalFreqs, self.gains))
+        self.gainAndFreq = data
         print(data)
         print(self.criticalFreqs)
         print(self.gains)
         plt.plot(self.criticalFreqs, self.gains, label='responce')
-        plt.plot((0,20000), (self.averageGain,self.averageGain), '--', label='average(target)')
+        plt.plot((0,20000), (self.gains[3],self.gains[3]), '--', label='average(target)')
         plt.xscale('log')
         plt.grid(True, which="both")
         plt.title('Spectrum')
+        plt.ylim([self.gains[3]-15, self.gains[3]+15])
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Gain (dB)')
         plt.savefig('spectrum.png')
         plt.legend()
         plt.show()
         return True
+
+    def instructor(self):
+        """finding how to tune the gain compared to 1000 Hz"""
+        stdGain = self.gains[5]
+        diffGain = self.gains-stdGain
+        # set diffGain as 0 when the absolute value is less than 3 dB
+        diffGain[np.abs(diffGain) < 1] = 0
+        #set diffGain half the original value when the absolute value is lager than 12dB
+        diffGain[np.abs(diffGain) > 12] = diffGain[np.abs(diffGain) > 12]/2
+        diffGain = -diffGain
+        # print frequency and gain
+        stdDiffGain = dict(zip(self.criticalFreqs, diffGain))
+        print(stdDiffGain)
+
+
+
+
+
+
 
     def savePlot(self, fileName='sensitivity.png'):
         if self.__checkInit():
@@ -70,6 +95,7 @@ class TuningInstuctor():
 
 
 if __name__ == '__main__':
-    instructor = TuningInstuctor('test.csv', 'averageGain.txt')
+    instructor = TuningInstuctor('record.csv', 'averageGain.txt')
     instructor.loadAverageGain()
     instructor.loadCSV()
+    instructor.instructor()

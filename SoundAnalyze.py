@@ -27,6 +27,7 @@ def timing(func):
 class SoundAnalyzer(NoiseGenerator):
     def __init__(self, fileName='noise.wav', *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.oldCSVData = None
         self.csvFileName = None
         self.ana_frequency_10dB = None
         self.r_fft_10dB = None
@@ -38,6 +39,7 @@ class SoundAnalyzer(NoiseGenerator):
         self.__closeflag = False
         self.fftData = None
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
+        # self.points = [125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         self.gainDiff = []
 
     @timing
@@ -108,11 +110,13 @@ class SoundAnalyzer(NoiseGenerator):
             # self.r_fft = self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]
             self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
             self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
+            # smooth the data
+            self.r_fft = signal.savgol_filter(self.r_fft, 51, 3)
             self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
             """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
             384000Hz, quad when it is 762000Hz. I don't know why"""
-            x = self.ana_frequency[:len(self.ana_frequency)]
-            y = 10 * np.log10(self.r_fft[:len(self.ana_frequency)])
+            x = self.ana_frequency[:int(len(self.ana_frequency) / 4)]
+            y = 10 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
         else:
             self.r_fft_10dB = np.fft.rfft(waveData)
             self.r_fft_10dB = np.abs(self.r_fft_10dB / max(self.r_fft_10dB))
@@ -206,14 +210,12 @@ class SoundAnalyzer(NoiseGenerator):
         self.saveRawData()
 
     def getSeparateGain(self, range=100):
-        # find the gain of distance between the 1000hz and each point
-        self.points = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
+        # self.points = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)
             self.ana_gain.append(
-                10 * np.log(np.mean(self.r_fft[position - min(range, point):position + range])))
+                10 * np.log(np.mean(self.r_fft[position - int(point / 2.1): position + int(point / 4)])))
         print(self.ana_gain)
-        self.saveRawData()
 
     @staticmethod
     def find_middle_log_scale(target, range, divide=10):
@@ -235,24 +237,51 @@ class SoundAnalyzer(NoiseGenerator):
             f.write(str(self.averageGain))
 
     def rms(self, data):
-        return np.sqrt(np.mean(np.square(data)))
+        return np.mean(data)
+        # return np.sqrt(np.mean(np.square(data)))
 
-    def saveRawData(self, fileName='rawData.csv'):
+    def saveRawData(self, fileName='rawData.csv', optimize=False):
         # delete the old file
+        global oldCsvY
+        if optimize:
+            try:
+                self.oldCSVData = pd.read_csv(fileName)
+                oldCsvX = np.array(self.oldCSVData['freqs'])
+                oldCsvY = np.array(self.oldCSVData['gain'])
+            except:
+                print('No old data, please run the program without optimization first')
         try:
             os.remove(fileName)
         except:
             pass
+
+        position = self.find_nearest(self.ana_frequency, 1000, position=True)
+        gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 4): position + int(1000 / 4)]))
         # save with pandas
-        df = pd.DataFrame({'freqs': self.points, 'gain': self.ana_gain})
+        x = self.ana_frequency[55:int(len(self.ana_frequency) / 4.7) - 1]
+        y = (20 * np.log10(self.r_fft[55:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + 15
+        y = -y
+
+        if optimize:
+            # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
+            # 0.3 *new data
+            count = 0
+            for i in range(len(x)):
+                if np.abs(y[i] - oldCsvY[i]) < 3:
+                    y[i] = oldCsvY[i]
+                else:
+                    y[i] = oldCsvY[i] + 0.01 * y[i]
+                    count += 1
+            print(str(count) + ' / ' + str(len(x)))
+        df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
-    # eqSYS_0.playandRecord()
+    eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
     # soundAnalyzer.systemSensitivity()
-    eqSYS_0.getSeparateGain()
-    eqSYS_0.averageTheGain()
-    eqSYS_0.saveRawData(fileName='record.csv')
+    #eqSYS_0.averageTheGain()
+    #eqSYS_0.getSeparateGain()
+    eqSYS_0.saveRawData(optimize=True)

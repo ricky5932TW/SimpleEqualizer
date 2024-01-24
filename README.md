@@ -1,6 +1,12 @@
 #Some results
+##
+original spectrum
+##
 ![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_origin20240124.png)
-![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_result20240124.png)
+##
+new spectrum
+##
+![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_result20240124.png)##
 # SimpleEqualizer
 It can help you tune your stereo system easily.
 Inspire the capacity of the speaker.

@@ -1,10 +1,10 @@
-#Some results
+# Some results
 ##
-original spectrum
+Spectrum before tuning
 ##
 ![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_origin20240124.png)
 ##
-new spectrum
+Spectrum after tuning
 ##
 ![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_result20240124.png)##
 # SimpleEqualizer

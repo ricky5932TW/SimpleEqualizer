@@ -25,8 +25,9 @@ def timing(func):
 
 
 class SoundAnalyzer(NoiseGenerator):
-    def __init__(self, fileName='noise.wav', *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.playFile = 'noise.wav'
         self.oldCSVData = None
         self.csvFileName = None
         self.ana_frequency_10dB = None
@@ -35,7 +36,7 @@ class SoundAnalyzer(NoiseGenerator):
         self.ana_gain = []
         self.ana_frequency = None
         self.r_fft = None
-        self.fileName = fileName
+        self.recordingname =None
         self.__closeflag = False
         self.fftData = None
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
@@ -57,18 +58,18 @@ class SoundAnalyzer(NoiseGenerator):
         t_record.join()  # wait for the thread to finish
         # t_countTime.join()
 
-    @staticmethod
-    def play(load='noise.wav'):
+
+    def play(self):
         # play noise.wav
         pygame.mixer.init()  # initialize the mixer module
-        pygame.mixer.music.load(load)  # load the sound file
+        pygame.mixer.music.load(self.playFile)  # load the sound file
         pygame.mixer.music.play()  # play the sound file
         while pygame.mixer.music.get_busy() == True:  # check if the sound is playing
             continue
 
     @timing
     def record_audio(self, wave_out_path="record.wav", record_second=3):
-        self.__removeOldWav(wave_out_path)  # remove old noise.wav
+        self.__removeOldWav(self.recordingname)  # remove old noise.wav
         CHUNK = 2048  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
         CHANNELS = 1  # 单声道
@@ -80,7 +81,7 @@ class SoundAnalyzer(NoiseGenerator):
                         rate=RATE,
                         input=True,
                         frames_per_buffer=CHUNK)  # 打开流，传入响应参数
-        wf = wave.open(wave_out_path, 'wb')  # 打开 wav 文件。
+        wf = wave.open(self.recordingname, 'wb')  # 打开 wav 文件。
         wf.setnchannels(CHANNELS)  # 声道设置
         wf.setsampwidth(p.get_sample_size(FORMAT))  # 采样位数设置
         wf.setframerate(RATE)  # 采样频率设置
@@ -102,30 +103,22 @@ class SoundAnalyzer(NoiseGenerator):
         except:
             pass
 
-    def fft(self, wave, plot=False, sensitivity=False):
+    def fft(self, wave, plot=False):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
         waveData = waveData * np.hamming(len(waveData))  # apply hamming window
 
-        if not sensitivity:
-            self.r_fft = np.fft.rfft(waveData)  # do fft
-            # self.r_fft = self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]
-            self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
-            self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
-            # smooth the data
-            self.r_fft = signal.savgol_filter(self.r_fft, 73, 3)
-            self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
-            """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
-            384000Hz, quad when it is 762000Hz. I don't know why"""
-            x = self.ana_frequency[:int(len(self.ana_frequency) / 4)]
-            y = 10 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
-        else:
-            self.r_fft_10dB = np.fft.rfft(waveData)
-            self.r_fft_10dB = np.abs(self.r_fft_10dB / max(self.r_fft_10dB))
-            self.r_fft_10dB = np.hamming(len(self.r_fft_10dB)) * self.r_fft_10dB
-            self.ana_frequency_10dB = np.fft.rfftfreq(len(self.r_fft_10dB), d=1 / framerate * 4)
-            x = self.ana_frequency_10dB[:len(self.ana_frequency_10dB)]
-            y = self.r_fft_10dB[:len(self.ana_frequency_10dB)]
+        self.r_fft = np.fft.rfft(waveData)  # do fft
+        # self.r_fft = self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]
+        self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
+        self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
+        # smooth the data
+        self.r_fft = signal.savgol_filter(self.r_fft, 73, 3)
+        self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
+        """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
+        384000Hz, quad when it is 762000Hz. I don't know why"""
+        x = self.ana_frequency[:int(len(self.ana_frequency) / 4)]
+        y = 10 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
 
         if plot:  # plot the result
             # biggest 30% of the fft result
@@ -253,9 +246,11 @@ class SoundAnalyzer(NoiseGenerator):
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
-    # eqSYS_0.playandRecord()
-    eqSYS_0.fft('record.wav', plot=True)
-    # soundAnalyzer.systemSensitivity()
+    eqSYS_0.recordingname = 'whiteNoiseTest.wav'
+    eqSYS_0.playFile = 'whiteNoise.wav'
+    eqSYS_0.playandRecord()
+    eqSYS_0.fft('whiteNoiseTest.wav', plot=True)
+
     # eqSYS_0.averageTheGain()
     # eqSYS_0.getSeparateGain()
     # eqSYS_0.saveRawData(optimize=True)

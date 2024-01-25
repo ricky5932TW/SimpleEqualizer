@@ -95,7 +95,7 @@ class TuningInstuctor():
 
 
 if __name__ == '__main__':
-    instructor = TuningInstuctor('record.csv', 'averageGain.txt')
+    instructor = TuningInstuctor('separateData.csv', 'averageGain.txt')
     instructor.loadAverageGain()
     instructor.loadCSV()
     instructor.instructor()

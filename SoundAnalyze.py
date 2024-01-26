@@ -36,7 +36,7 @@ class SoundAnalyzer(NoiseGenerator):
         self.ana_gain = []
         self.ana_frequency = None
         self.r_fft = None
-        self.recordingname =None
+        self.recordingname = None
         self.__closeflag = False
         self.fftData = None
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
@@ -48,16 +48,12 @@ class SoundAnalyzer(NoiseGenerator):
         # play noise.wav and record the sound at the same time by threading
         t_play = threading.Thread(target=self.play)  # play noise.wav
         t_record = threading.Thread(target=self.record_audio)  # record the sound
-        # t_countTime = threading.Thread(target=self.countTime())  # count the time
 
         t_play.start()  # start the thread
         t_record.start()  # start the thread
-        # t_countTime.start()
 
         t_play.join()  # wait for the thread to finish
         t_record.join()  # wait for the thread to finish
-        # t_countTime.join()
-
 
     def play(self):
         # play noise.wav
@@ -68,7 +64,7 @@ class SoundAnalyzer(NoiseGenerator):
             continue
 
     @timing
-    def record_audio(self, wave_out_path="record.wav", record_second=3):
+    def record_audio(self, record_second=3):
         self.__removeOldWav(self.recordingname)  # remove old noise.wav
         CHUNK = 2048  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
@@ -148,7 +144,7 @@ class SoundAnalyzer(NoiseGenerator):
         return waveData, framerate
 
     @staticmethod
-    def find_nearest(self, array, value, position=False):
+    def find_nearest(array, value, position=False):
         array = np.asarray(array)
         # find the nearest value around target 100Hz in the array
         idx = (np.abs(array - value)).argmin()
@@ -221,10 +217,12 @@ class SoundAnalyzer(NoiseGenerator):
             pass
 
         position = self.find_nearest(self.ana_frequency, 1000, position=True)
-        gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 4): position + int(1000 / 4)]))
+        gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
         # save with pandas
-        x = self.ana_frequency[55:int(len(self.ana_frequency) / 4.7) - 1]
-        y = (20 * np.log10(self.r_fft[55:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + 15
+        # 55 -> about 20Hz, little less than 20Hz
+        # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
+        x = self.ana_frequency[150:int(len(self.ana_frequency) / 4.7) - 1]
+        y = (20 * np.log10(self.r_fft[150:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + 15
         y = -y
 
         if optimize:
@@ -232,25 +230,23 @@ class SoundAnalyzer(NoiseGenerator):
             # 0.3 *new data
             count = 0
             for i in range(len(x)):
-                if np.abs(y[i] - oldCsvY[i]) < 1:
+                if np.abs(y[i] - oldCsvY[i]) < 0.1:
                     y[i] = oldCsvY[i]
                 else:
                     y[i] = oldCsvY[i] + 0.1 * y[i]
                     count += 1
             print(str(count) + ' / ' + str(len(x)))
         # smooth the data
-        y = signal.savgol_filter(y, 121, 2)
+        y = signal.savgol_filter(y, 91, 2)
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
-    eqSYS_0.recordingname = 'whiteNoiseTest.wav'
-    eqSYS_0.playFile = 'whiteNoise.wav'
+    eqSYS_0.recordingname = 'record.wav'
+    eqSYS_0.playFile = 'noise.wav'
     eqSYS_0.playandRecord()
-    eqSYS_0.fft('whiteNoiseTest.wav', plot=True)
-
-    # eqSYS_0.averageTheGain()
-    # eqSYS_0.getSeparateGain()
-    # eqSYS_0.saveRawData(optimize=True)
+    eqSYS_0.fft('record.wav', plot=True)
+    eqSYS_0.averageTheGain()
+    eqSYS_0.saveRawData(fileName='rawDataBuiltin.csv',optimize=1)

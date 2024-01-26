@@ -62,7 +62,8 @@ class NoiseGenerator:
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.h = np.array([6, 6, -3, 0, 10, 1, -20,-80])
+        self.f = np.array([10,20, 40, 210, 1000, 3000, 9000, 20000,30000])
+        self.h = np.array([2,2, 2, -3, 0, 10, 1, -20,-40])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -184,8 +185,8 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='whiteNoise.wav', reverse=False)
-    noise.makeWhiteNoise()
-    #noise.generate()
-    #noise.saveWav()
-    #noise.plot()
+    noise = NoiseGenerator(name='noise.wav', reverse=True)
+    #noise.makeWhiteNoise()
+    noise.generate()
+    noise.saveWav()
+    noise.plot()

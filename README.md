@@ -2,11 +2,11 @@
 ##
 Spectrum before tuning
 ##
-![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_origin20240124.png)
+![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/result/msi_p65/laptop_before.png)
 ##
 Spectrum after tuning
 ##
-![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/test_result20240124.png)##
+![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/result/msi_p65/laptop_after.png)##
 # SimpleEqualizer
 It can help you tune your stereo system easily.
 Inspire the capacity of the speaker.

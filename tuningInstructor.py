@@ -42,11 +42,11 @@ class TuningInstuctor():
         print(self.criticalFreqs)
         print(self.gains)
         plt.plot(self.criticalFreqs, self.gains, label='responce')
-        plt.plot((0,20000), (self.gains[3],self.gains[3]), '--', label='average(target)')
+        plt.plot((0,20000), (self.gains[4],self.gains[4]), '--', label='average(target)')
         plt.xscale('log')
         plt.grid(True, which="both")
         plt.title('Spectrum')
-        plt.ylim([self.gains[3]-15, self.gains[3]+15])
+        plt.ylim([self.gains[3]-20, self.gains[3]+20])
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Gain (dB)')
         plt.savefig('spectrum.png')
@@ -54,9 +54,9 @@ class TuningInstuctor():
         plt.show()
         return True
 
-    def instructor(self):
+    def printInstruction(self):
         """finding how to tune the gain compared to 1000 Hz"""
-        stdGain = self.gains[5]
+        stdGain = self.gains[4]
         diffGain = self.gains-stdGain
         # set diffGain as 0 when the absolute value is less than 3 dB
         diffGain[np.abs(diffGain) < 1] = 0
@@ -95,7 +95,7 @@ class TuningInstuctor():
 
 
 if __name__ == '__main__':
-    instructor = TuningInstuctor('separateData.csv', 'averageGain.txt')
+    instructor = TuningInstuctor('separateData.csv', '1000HzGain.txt')
     instructor.loadAverageGain()
     instructor.loadCSV()
-    instructor.instructor()
+    instructor.printInstruction()

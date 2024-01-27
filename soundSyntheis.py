@@ -185,7 +185,7 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='noise.wav', reverse=True)
+    noise = NoiseGenerator(name='noise60sec.wav', reverse=True,duration=60)
     #noise.makeWhiteNoise()
     noise.generate()
     noise.saveWav()

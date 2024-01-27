@@ -155,12 +155,21 @@ class SoundAnalyzer(NoiseGenerator):
             return array[idx]
 
     def saveSeparateData(self, fileName='separateData.csv', optimize=False):
-        # self.points = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
+        """ save the data in csv file"""
+        global oldCsvY
+        if optimize:
+            try:
+                self.oldCSVData = pd.read_csv(fileName)
+                oldCsvX = np.array(self.oldCSVData['freqs'])
+                oldCsvY = np.array(self.oldCSVData['gain'])
+            except:
+                print('No old data, please run the program without optimization first')
         for point in self.points:
-            position = self.find_nearest(self.ana_frequency, point, position=True)
-            y = signal.savgol_filter(self.r_fft, 142, 2)
+            position = self.find_nearest(self.ana_frequency, point, position=True)  # find the position of the point
+            y = signal.savgol_filter(self.r_fft, 142, 2)    # smooth the data
+            part_y = y[position - int(point / 6): position + int(point / 6)]    # get the data around the point
             self.ana_gain.append(
-                20 * np.log(np.mean(y[position - int(point / 2.1): position + int(point / 4)])))
+                10 * np.log(np.mean(list(filter(lambda x: x > 0.7*np.max(part_y), part_y))))) # get the average gain
         print(self.ana_gain)
         if optimize:
             # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
@@ -178,7 +187,7 @@ class SoundAnalyzer(NoiseGenerator):
         df.to_csv(fileName, index=False)
 
     @staticmethod
-    def find_middle_log_scale(target, range, divide=10):
+    def find_middle_log_scale(target, range):
         result = np.sqrt(target * range)
         if result > target:
             print(int(result) - 1)
@@ -187,15 +196,10 @@ class SoundAnalyzer(NoiseGenerator):
             print(int(result) + 1)
             return int(result) + 1
 
-    def averageTheGain(self):
-        # find overall average gain
-        self.averageGain = 10 * np.log(
-            np.sqrt((np.mean((np.square(self.r_fft[:self.find_nearest(self.ana_frequency, 20000, position=True)]))))))
-        print(self.averageGain)
-        # save as txt
-        with open('averageGain.txt', 'w') as f:
-            f.write(str(self.averageGain))
-
+    def save1000HzGain(self, fileName='1000HzGain.txt'):
+        # save in txt file
+        with open(fileName, 'w') as f:
+            f.write(str(self.find_nearest(self.ana_frequency, 1000, position=False)) + '\n')
     @staticmethod
     def rms(data):
         return np.mean(data)
@@ -243,10 +247,22 @@ class SoundAnalyzer(NoiseGenerator):
 
 
 if __name__ == '__main__':
+    '''
+    # for making a complete tuning data
     eqSYS_0 = SoundAnalyzer()
     eqSYS_0.recordingname = 'record.wav'
     eqSYS_0.playFile = 'noise.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
-    eqSYS_0.averageTheGain()
     eqSYS_0.saveRawData(fileName='rawDataBuiltin.csv',optimize=1)
+    '''
+    # for making a tuning data with signed frequency
+    eqSYS_1 = SoundAnalyzer()
+    eqSYS_1.points = np.array([50,200,400,800,1000,3000,7000,15000])
+    eqSYS_1.recordingname = 'record.wav'
+    eqSYS_1.playFile = 'noise.wav'
+    #eqSYS_1.playandRecord()
+    eqSYS_1.fft('record.wav', plot=True)
+    eqSYS_1.save1000HzGain()
+    eqSYS_1.saveSeparateData(optimize=0)
+

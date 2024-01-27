@@ -197,9 +197,15 @@ class SoundAnalyzer(NoiseGenerator):
             return int(result) + 1
 
     def save1000HzGain(self, fileName='1000HzGain.txt'):
-        # save in txt file
+        # get the gain of 1000Hz
+        position = self.find_nearest(self.ana_frequency, 1000, position=True)
+        gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
+        # save the gain of 1000Hz
         with open(fileName, 'w') as f:
-            f.write(str(self.find_nearest(self.ana_frequency, 1000, position=False)) + '\n')
+            f.write(str(gain1000))
+        # save in txt file
+
+
     @staticmethod
     def rms(data):
         return np.mean(data)

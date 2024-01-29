@@ -27,6 +27,8 @@ def timing(func):
 class SoundAnalyzer(NoiseGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.lowerBound = 150
+        self.gainbias = 15
         self.playFile = 'noise.wav'
         self.oldCSVData = None
         self.csvFileName = None
@@ -167,7 +169,7 @@ class SoundAnalyzer(NoiseGenerator):
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)  # find the position of the point
             y = signal.savgol_filter(self.r_fft, 142, 2)    # smooth the data
-            part_y = y[position - int(point / 6): position + int(point / 6)]    # get the data around the point
+            part_y = y[position - int(point / 2.1): position + int(point / 2.1)]    # get the data around the point
             self.ana_gain.append(
                 10 * np.log(np.mean(list(filter(lambda x: x > 0.7*np.max(part_y), part_y))))) # get the average gain
         print(self.ana_gain)
@@ -231,9 +233,10 @@ class SoundAnalyzer(NoiseGenerator):
         # save with pandas
         # 55 -> about 20Hz, little less than 20Hz
         # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
-        x = self.ana_frequency[150:int(len(self.ana_frequency) / 4.7) - 1]
-        y = (20 * np.log10(self.r_fft[150:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + 15
-        y = -y
+        x = self.ana_frequency[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1]   # get the frequency
+        x[0] = 0  # set the frequency below 50Hz as 0
+        y = (20 * np.log10(self.r_fft[150:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + self.gainbias
+        y = -y  # reverse the curve
 
         if optimize:
             # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
@@ -243,7 +246,7 @@ class SoundAnalyzer(NoiseGenerator):
                 if np.abs(y[i] - oldCsvY[i]) < 0.1:
                     y[i] = oldCsvY[i]
                 else:
-                    y[i] = oldCsvY[i] + 0.1 * y[i]
+                    y[i] = oldCsvY[i] + 0.01 * y[i]
                     count += 1
             print(str(count) + ' / ' + str(len(x)))
         # smooth the data
@@ -264,10 +267,10 @@ if __name__ == '__main__':
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()
-    eqSYS_1.points = np.array([50,200,400,800,1000,3000,7000,15000])
+    eqSYS_1.points = np.array([63,125,250,500,1000,2000,4000,8000,16000])
     eqSYS_1.recordingname = 'record.wav'
     eqSYS_1.playFile = 'noise.wav'
-    #eqSYS_1.playandRecord()
+    eqSYS_1.playandRecord()
     eqSYS_1.fft('record.wav', plot=True)
     eqSYS_1.save1000HzGain()
     eqSYS_1.saveSeparateData(optimize=0)

@@ -101,7 +101,7 @@ class SoundAnalyzer(NoiseGenerator):
         except:
             pass
 
-    def fft(self, wave, plot=False):
+    def fft(self, wave, plot=False,**kwargs):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
         waveData = waveData * np.hamming(len(waveData))  # apply hamming window
@@ -111,12 +111,15 @@ class SoundAnalyzer(NoiseGenerator):
         self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
         self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
         # smooth the data
-        self.r_fft = signal.savgol_filter(self.r_fft, 73, 3)
+        self.r_fft = signal.savgol_filter(self.r_fft, 32, 4)
         self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
         """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
         384000Hz, quad when it is 762000Hz. I don't know why"""
         x = self.ana_frequency[:int(len(self.ana_frequency) / 4)]
-        y = 10 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
+        y = 20 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
+        if 'smooth' in kwargs:
+            if kwargs['smooth']:
+                y = signal.savgol_filter(y, 273, 2)
 
         if plot:  # plot the result
             # biggest 30% of the fft result
@@ -234,8 +237,10 @@ class SoundAnalyzer(NoiseGenerator):
         # 55 -> about 20Hz, little less than 20Hz
         # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
         x = self.ana_frequency[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1]   # get the frequency
-        x[0] = 0  # set the frequency below 50Hz as 0
-        y = (20 * np.log10(self.r_fft[150:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + self.gainbias
+          # set the frequency below 50Hz as half of the original value make the curve more smooth and keep
+                   # it has enough margin
+        y = (20 * np.log10(self.r_fft[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + self.gainbias
+
         y = -y  # reverse the curve
 
         if optimize:
@@ -250,20 +255,22 @@ class SoundAnalyzer(NoiseGenerator):
                     count += 1
             print(str(count) + ' / ' + str(len(x)))
         # smooth the data
-        y = signal.savgol_filter(y, 91, 2)
+        y = signal.savgol_filter(y, 57, 3)
+        y[0] /= 4
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
 
 if __name__ == '__main__':
-    '''
+
     # for making a complete tuning data
     eqSYS_0 = SoundAnalyzer()
+    eqSYS_0.lowerBound = 130
     eqSYS_0.recordingname = 'record.wav'
-    eqSYS_0.playFile = 'noise.wav'
+    eqSYS_0.playFile = 'whiteNoise.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
-    eqSYS_0.saveRawData(fileName='rawDataBuiltin.csv',optimize=1)
+    #eqSYS_0.saveRawData(fileName='rawData6.5inchs.csv',optimize=1)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()
@@ -274,4 +281,4 @@ if __name__ == '__main__':
     eqSYS_1.fft('record.wav', plot=True)
     eqSYS_1.save1000HzGain()
     eqSYS_1.saveSeparateData(optimize=0)
-
+'''

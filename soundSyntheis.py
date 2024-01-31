@@ -62,8 +62,8 @@ class NoiseGenerator:
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([10,20, 40, 210, 1000, 3000, 9000, 20000,30000])
-        self.h = np.array([2,2, 2, -3, 0, 10, 1, -20,-40])
+        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000, 30000])
+        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -40])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -107,7 +107,6 @@ class NoiseGenerator:
     def generate(self):
         self.__interpolate()
         self.__apply()
-
 
     def saveWav(self):
         cutoff_frequency = 20000
@@ -173,7 +172,7 @@ class NoiseGenerator:
         # make white noise
         noise = np.random.randn(self.__sample)
         # save the file
-        scaled = np.int32(noise / np.max(np.abs(noise)) * (2**31-1))
+        scaled = np.int32(noise / np.max(np.abs(noise)) * (2 ** 31 - 1))
         # Apply the low-pass filter
         cutoff_frequency = 40000
         nyquist_frequency = self.__sampleRate / 2.0
@@ -183,10 +182,11 @@ class NoiseGenerator:
         wavfile.write(self.name, self.__sampleRate, scaled)
 
 
-
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='noise60sec.wav', reverse=True,duration=60)
-    #noise.makeWhiteNoise()
+    noise = NoiseGenerator(name='whiteNoise.wav', reverse=True, duration=5)
+    noise.f = np.array([20,1000,20000])
+    noise.h = np.array([0,0,0])
+    # noise.makeWhiteNoise()
     noise.generate()
     noise.saveWav()
     noise.plot()

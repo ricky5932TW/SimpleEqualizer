@@ -256,7 +256,7 @@ class SoundAnalyzer(NoiseGenerator):
             print(str(count) + ' / ' + str(len(x)))
         # smooth the data
         y = signal.savgol_filter(y, 57, 3)
-        y[0] /= 4
+        y[0] /= 1.1
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
@@ -265,12 +265,12 @@ if __name__ == '__main__':
 
     # for making a complete tuning data
     eqSYS_0 = SoundAnalyzer()
-    eqSYS_0.lowerBound = 130
+    eqSYS_0.lowerBound = 150
     eqSYS_0.recordingname = 'record.wav'
-    eqSYS_0.playFile = 'whiteNoise.wav'
+    eqSYS_0.playFile = 'noise.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
-    #eqSYS_0.saveRawData(fileName='rawData6.5inchs.csv',optimize=1)
+    eqSYS_0.saveRawData(fileName='rawData_kinyo_noise.csv',optimize=1)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()

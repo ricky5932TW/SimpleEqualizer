@@ -237,8 +237,8 @@ class SoundAnalyzer(NoiseGenerator):
         # 55 -> about 20Hz, little less than 20Hz
         # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
         x = self.ana_frequency[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1]   # get the frequency
-          # set the frequency below 50Hz as half of the original value make the curve more smooth and keep
-                   # it has enough margin
+        # set the frequency below 50Hz as half of the original value make the curve more smooth and keep
+        # it has enough margin
         y = (20 * np.log10(self.r_fft[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000 + self.gainbias
 
         y = -y  # reverse the curve

@@ -46,7 +46,7 @@ class SoundAnalyzer(NoiseGenerator):
         self.gainDiff = []
 
     @timing
-    def playandRecord(self, load='noise.wav', wave_out_path="record.wav", record_second=1):
+    def playandRecord(self):
         # play noise.wav and record the sound at the same time by threading
         t_play = threading.Thread(target=self.play)  # play noise.wav
         t_record = threading.Thread(target=self.record_audio)  # record the sound
@@ -68,7 +68,7 @@ class SoundAnalyzer(NoiseGenerator):
     @timing
     def record_audio(self, record_second=3):
         self.__removeOldWav(self.recordingname)  # remove old noise.wav
-        CHUNK = 2048  # 每个缓冲区的帧数
+        CHUNK = 4096  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
         CHANNELS = 1  # 单声道
         RATE = 384000  # 采样频率

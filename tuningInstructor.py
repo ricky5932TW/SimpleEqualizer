@@ -52,7 +52,6 @@ class TuningInstuctor():
         plt.savefig('spectrum.png')
         plt.legend()
         plt.show()
-        return True
 
     def printInstruction(self):
         """finding how to tune the gain compared to 1000 Hz"""

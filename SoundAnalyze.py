@@ -270,7 +270,7 @@ if __name__ == '__main__':
     eqSYS_0.playFile = 'noise.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('record.wav', plot=True)
-    eqSYS_0.saveRawData(fileName='rawData_kinyo_noise.csv',optimize=1)
+    eqSYS_0.saveRawData(fileName='rawData_3inchs.csv',optimize=1)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()

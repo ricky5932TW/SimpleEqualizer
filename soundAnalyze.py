@@ -8,7 +8,8 @@ import pyaudio
 import wave
 import time
 import numpy as np
-import scipy.signal as signal
+from scipy.io import wavfile
+from scipy import signal
 import pygame
 import playsound
 import pydub
@@ -143,15 +144,19 @@ class SoundAnalyzer(NoiseGenerator):
 
     @staticmethod
     def __readWav(_wave):
-        # read the wave file
+        # read the wave file by scipy.io.wavfile
         # return: np.array
+        fs, data = wavfile.read(_wave)
+        data = data / (2**31)
+        return data, fs
+        '''
         f = wave.open(_wave, 'rb')
         params = f.getparams()
         nchannels, sampwidth, framerate, nframes = params[:4]
         strData = f.readframes(nframes)
         waveData = np.frombuffer(strData, dtype=np.int32)
         f.close()
-        return waveData, framerate
+        return waveData, framerate'''
 
     @staticmethod
     def find_nearest(array, value, position=False):
@@ -272,9 +277,9 @@ if __name__ == '__main__':
     eqSYS_0.lowerBound = 150
     eqSYS_0.recordingname = 'soundFile/record.wav'
     eqSYS_0.playFile = 'soundFile/noise.wav'
-    eqSYS_0.playandRecord()
+    #eqSYS_0.playandRecord()
     eqSYS_0.fft('soundFile/record.wav', plot=True)
-    eqSYS_0.saveRawData(fileName='data/rawData_3inchs.csv', optimize=1)
+    #eqSYS_0.saveRawData(fileName='data/rawData_3inchs.csv', optimize=1)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()

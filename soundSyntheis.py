@@ -63,7 +63,7 @@ class NoiseGenerator:
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
         self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000, 25000,30000])
-        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -20,-0])
+        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -10,10])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -109,7 +109,7 @@ class NoiseGenerator:
         self.__apply()
 
     def saveWav(self):
-        cutoff_frequency = 40000
+        cutoff_frequency = 22000
         try:
             # remove old file
             os.remove(self.name)
@@ -136,8 +136,8 @@ class NoiseGenerator:
         # grid
         ax1.grid()
         ax2.grid()
-        ax2.set_xlim([20, 20000])
-        ax2.set_ylim([-15, 20])
+        ax2.set_xlim([20, 40000])
+        ax2.set_ylim([-15, 25])
         plt.show()
 
     def makingTESTNoise(self):

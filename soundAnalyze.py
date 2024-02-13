@@ -1,19 +1,15 @@
-import scipy
-from matplotlib import pyplot as plt
-import pandas as pd
-from soundSyntheis import NoiseGenerator
 import os
 import threading
-import pyaudio
-import wave
 import time
+import wave
 import numpy as np
-from scipy.io import wavfile
-from scipy import signal
+import pandas as pd
+import pyaudio
 import pygame
-import playsound
-import pydub
-
+from matplotlib import pyplot as plt
+from scipy import signal
+from scipy.io import wavfile
+from soundSyntheis import NoiseGenerator
 
 
 def timing(func):

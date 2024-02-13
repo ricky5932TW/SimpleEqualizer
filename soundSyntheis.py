@@ -183,9 +183,8 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='whiteNoise.wav', reverse=True, duration=5)
-    noise.f = np.array([20,1000,20000])
-    noise.h = np.array([0,0,0])
+    noise = NoiseGenerator(name='whiteNoise.wav', reverse=1, duration=5)
+    #noise.h = np.array([0,0,0])
     # noise.makeWhiteNoise()
     noise.generate()
     noise.saveWav()

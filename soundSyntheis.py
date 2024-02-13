@@ -55,15 +55,15 @@ plt.show()
 
 # package it by class
 class NoiseGenerator:
-    def __init__(self, name='noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
+    def __init__(self, name='soundFile/noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
         super().__init__()
         self.__duration = duration
         self.__sampleRate = sampleRate
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000, 30000])
-        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -40])
+        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000, 25000,30000])
+        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -20,-0])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -109,7 +109,7 @@ class NoiseGenerator:
         self.__apply()
 
     def saveWav(self):
-        cutoff_frequency = 20000
+        cutoff_frequency = 40000
         try:
             # remove old file
             os.remove(self.name)
@@ -123,7 +123,7 @@ class NoiseGenerator:
         b, a = scipy.signal.butter(8, critical_freq, 'low')
         filtered_signal = scipy.signal.lfilter(b, a, scaled)
 
-        wavfile.write(self.name, self.__sampleRate, scaled)
+        wavfile.write(self.name, self.__sampleRate, filtered_signal)
 
     def plot(self):
         fig, (ax1, ax2) = plt.subplots(2, 1)
@@ -183,9 +183,12 @@ class NoiseGenerator:
 
 
 if __name__ == '__main__':
-    noise = NoiseGenerator(name='whiteNoise.wav', reverse=1, duration=5)
-    #noise.h = np.array([0,0,0])
-    # noise.makeWhiteNoise()
+
+    noise = NoiseGenerator(name='soundFile/noise.wav', reverse=1, duration=5)
+
     noise.generate()
     noise.saveWav()
     noise.plot()
+
+    #noise = NoiseGenerator(name='soundFile/whiteNoise.wav', reverse=0, duration=5)
+   # noise.makeWhiteNoise()

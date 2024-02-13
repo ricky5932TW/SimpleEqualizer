@@ -2,7 +2,6 @@ import scipy
 from matplotlib import pyplot as plt
 import pandas as pd
 from soundSyntheis import NoiseGenerator
-import pygame
 import os
 import threading
 import pyaudio
@@ -10,6 +9,10 @@ import wave
 import time
 import numpy as np
 import scipy.signal as signal
+import pygame
+import playsound
+import pydub
+
 
 
 def timing(func):
@@ -28,7 +31,7 @@ class SoundAnalyzer(NoiseGenerator):
         super().__init__(*args, **kwargs)
         self.lowerBound = 150
         self.gainbias = 15
-        self.playFile = 'noise.wav'
+        self.playFile = 'soundFile/noise.wav'
         self.oldCSVData = None
         self.csvFileName = None
         self.ana_frequency_10dB = None
@@ -56,13 +59,18 @@ class SoundAnalyzer(NoiseGenerator):
         t_play.join()  # wait for the thread to finish
         t_record.join()  # wait for the thread to finish
 
+
     def play(self):
-        # play noise.wav
-        pygame.mixer.init()  # initialize the mixer module
-        pygame.mixer.music.load(self.playFile)  # load the sound file
-        pygame.mixer.music.play()  # play the sound file
-        while pygame.mixer.music.get_busy() == True:  # check if the sound is playing
-            continue
+        # play noise.wav by pyaudio
+        pygame.mixer.init()
+        pygame.mixer.music.load(self.playFile)
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pass
+        pygame.mixer.quit()
+
+
+
 
     @timing
     def record_audio(self, record_second=3):
@@ -262,11 +270,11 @@ if __name__ == '__main__':
     # for making a complete tuning data
     eqSYS_0 = SoundAnalyzer()
     eqSYS_0.lowerBound = 150
-    eqSYS_0.recordingname = 'record.wav'
-    eqSYS_0.playFile = 'noise.wav'
+    eqSYS_0.recordingname = 'soundFile/record.wav'
+    eqSYS_0.playFile = 'soundFile/noise.wav'
     eqSYS_0.playandRecord()
-    eqSYS_0.fft('record.wav', plot=True)
-    eqSYS_0.saveRawData(fileName='rawData_3inchs.csv', optimize=1)
+    eqSYS_0.fft('soundFile/record.wav', plot=True)
+    eqSYS_0.saveRawData(fileName='data/rawData_3inchs_noise.csv', optimize=1)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()

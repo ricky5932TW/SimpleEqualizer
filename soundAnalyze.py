@@ -342,10 +342,10 @@ if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
     eqSYS_0.lowerBound = 150
     eqSYS_0.recordingname = 'soundFile/record.wav'
-    eqSYS_0.playFile = 'soundFile/whiteNoise.wav'
+    eqSYS_0.playFile = 'sweep_signal.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('soundFile/record.wav', plot=1, smooth=True)
-    eqSYS_0.saveRawData(fileName='data/rawData_3inches_whitenoise.csv', optimize=1)
+    eqSYS_0.saveRawData(fileName='data/rawData_3inches_sweep_ori.csv', optimize=1)
     #eqSYS_0.playFile = 'soundFile/noise10000Hz.wav'
     #eqSYS_0.playandRecord()
     #eqSYS_0.fft('soundFile/record.wav', plot=True)

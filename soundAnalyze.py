@@ -1,16 +1,16 @@
 import os
+import multiprocessing
 import threading
 import time
 import wave
 import numpy as np
 import pandas as pd
 import pyaudio
-import pygame
 from matplotlib import pyplot as plt
 from scipy import signal
 from scipy.io import wavfile
 from soundSyntheis import NoiseGenerator
-
+import pygame
 
 def timing(func):
     def wrapper(*args, **kwargs):
@@ -40,13 +40,14 @@ class SoundAnalyzer(NoiseGenerator):
         self.recordingname = None
         self.__closeflag = False
         self.fftData = None
+        self.mixxspectrum = None
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         # self.points = [125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         self.gainDiff = []
 
-    @timing
     def playandRecord(self):
-        # play noise.wav and record the sound at the same time by threading
+        print('playandRecord start')
+        # play noise.wav and record the sound at the same time by multiprocessing
         t_play = threading.Thread(target=self.play)  # play noise.wav
         t_record = threading.Thread(target=self.record_audio)  # record the sound
 
@@ -55,24 +56,40 @@ class SoundAnalyzer(NoiseGenerator):
 
         t_play.join()  # wait for the thread to finish
         t_record.join()  # wait for the thread to finish
+        print('playandRecord end')
 
-
+    @timing
     def play(self):
-        # play noise.wav by pyaudio
+        # play the noise.wav by pyaudio
+        '''
+        chunk = 2**1000000
+        wf = wave.open(self.playFile, 'rb')
+        p = pyaudio.PyAudio()
+        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                        channels=wf.getnchannels(),
+                        rate=wf.getframerate(),
+                        output=True)
+        data = wf.readframes(chunk)
+        while data != b'':
+            stream.write(data)
+            data = wf.readframes(chunk)
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+        '''
+        # play the noise.wav by pygames
         pygame.mixer.init()
         pygame.mixer.music.load(self.playFile)
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
-            pass
-        pygame.mixer.quit()
-
+            time.sleep(0.1)
 
 
 
     @timing
-    def record_audio(self, record_second=3):
+    def record_audio(self, record_second=4):
         self.__removeOldWav(self.recordingname)  # remove old noise.wav
-        CHUNK = 4096  # 每个缓冲区的帧数
+        CHUNK = 2**19  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
         CHANNELS = 1  # 单声道
         RATE = 384000  # 采样频率
@@ -143,7 +160,7 @@ class SoundAnalyzer(NoiseGenerator):
         # read the wave file by scipy.io.wavfile
         # return: np.array
         fs, data = wavfile.read(_wave)
-        data = data / (2**31)
+        data = data / (2 ** 31)
         return data, fs
         '''
         f = wave.open(_wave, 'rb')
@@ -152,7 +169,8 @@ class SoundAnalyzer(NoiseGenerator):
         strData = f.readframes(nframes)
         waveData = np.frombuffer(strData, dtype=np.int32)
         f.close()
-        return waveData, framerate'''
+        return waveData, framerate
+        '''
 
     @staticmethod
     def find_nearest(array, value, position=False):
@@ -167,7 +185,8 @@ class SoundAnalyzer(NoiseGenerator):
 
     def saveSeparateData(self, fileName='separateData.csv', optimize=False):
         """ save the data in csv file"""
-        global oldCsvY
+        oldCsvY = np.zeros(1)
+        oldCsvX = np.zeros(1)
         if optimize:
             try:
                 self.oldCSVData = pd.read_csv(fileName)
@@ -221,9 +240,10 @@ class SoundAnalyzer(NoiseGenerator):
         return np.mean(data)
         # return np.sqrt(np.mean(np.square(data)))
 
-    def saveRawData(self, fileName='rawData.csv', optimize=False):
+    def saveRawData(self, fileName='rawData.csv', optimize=False, cutoff=0):
         # delete the old file
-        global oldCsvY
+        oldCsvY = np.zeros(1)
+        oldCsvX = np.zeros(1)
         if optimize:
             try:
                 self.oldCSVData = pd.read_csv(fileName)
@@ -235,9 +255,13 @@ class SoundAnalyzer(NoiseGenerator):
             os.remove(fileName)
         except:
             pass
+        old1000Hz = oldCsvY[self.find_nearest(oldCsvX, 1000, position=True)]
 
         position = self.find_nearest(self.ana_frequency, 1000, position=True)
         gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
+        positionCutoff = self.find_nearest(self.ana_frequency, cutoff, position=True)
+
+
         # save with pandas
         # 55 -> about 20Hz, little less than 20Hz
         # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
@@ -253,16 +277,62 @@ class SoundAnalyzer(NoiseGenerator):
             # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
             # 0.3 *new data
             count = 0
-            for i in range(len(x)):
-                if np.abs(y[i] - oldCsvY[i]) < 0.5:
+            for i in range(positionCutoff, len(x)):
+                if np.abs(y[i] - oldCsvY[i]) < 0.1:
                     y[i] = oldCsvY[i]
                 else:
-                    y[i] = oldCsvY[i] + 0.05 * y[i]
+                    y[i] = oldCsvY[i] + (0.5 * y[i])
                     count += 1
-            print(str(count) + ' / ' + str(len(x)))
+            print(str(count) + ' / ' + str(len(x) - positionCutoff))
         # smooth the data
-        y = signal.savgol_filter(y, 311, 3)
-        y[0] /= 1.1
+        y[positionCutoff:] = signal.savgol_filter(y[positionCutoff:], 571, 2)
+        df = pd.DataFrame({'freqs': x, 'gain': y})
+        df.to_csv(fileName, index=False)
+
+    def saveRawData_lowfreq(self, fileName='rawData.csv', optimize=True, cutoff=10000):
+        '''use wav file with full frequency range to get the raw data then use wav file with cutoff frequency to shape
+        the curve more accurately on low frequency'''
+        # delete the old file
+        oldCsvY = np.zeros(1)
+        oldCsvX = np.zeros(1)
+        if optimize:
+            try:
+                self.oldCSVData = pd.read_csv(fileName)
+                oldCsvX = np.array(self.oldCSVData['freqs'])
+                oldCsvY = np.array(self.oldCSVData['gain'])
+            except:
+                print('No old data, please run the program without optimization first')
+        try:
+            os.remove(fileName)
+        except:
+            pass
+
+        position1000Hz = self.find_nearest(self.ana_frequency, 1000, position=True)
+        gain1000Hz = 10 * np.log(np.mean(self.r_fft[position1000Hz - int(1000 / 10): position1000Hz + int(1000 / 10)]))
+        positionCutoff = self.find_nearest(self.ana_frequency, cutoff, position=True)
+        # save with pandas
+        # 55 -> about 20Hz, little less than 20Hz
+        # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
+        x = self.ana_frequency[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1]  # get the frequency
+        # set the frequency below 50Hz as half of the original value make the curve more smooth and keeping
+        # it has enough margin
+        y = (20 * np.log10(
+            self.r_fft[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000Hz + self.gainbias
+        y = -y  # reverse the curve
+
+        if optimize:
+            # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
+            # 0.3 *new data
+            count = 0
+            for i in range(positionCutoff - self.lowerBound):
+                if np.abs(y[i] - oldCsvY[i]) < 0.1:
+                    y[i] = oldCsvY[i]
+                else:
+                    y[i] = oldCsvY[i] + (0.5 * y[i])
+                    count += 1
+            print(str(count) + ' / ' + str(positionCutoff - self.lowerBound))
+        # smooth the data
+        y[:positionCutoff + 100] = signal.savgol_filter(y[:positionCutoff + 100], 193, 3)
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
@@ -272,10 +342,14 @@ if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()
     eqSYS_0.lowerBound = 150
     eqSYS_0.recordingname = 'soundFile/record.wav'
-    eqSYS_0.playFile = 'soundFile/whiteNoise.wav'
+    eqSYS_0.playFile = 'soundFile/noise.wav'
     eqSYS_0.playandRecord()
-    eqSYS_0.fft('soundFile/record.wav', plot=True)
-    eqSYS_0.saveRawData(fileName='data/rawData_3inchs_whiteNoise.csv', optimize=1)
+    eqSYS_0.fft('soundFile/record.wav', plot=1, smooth=True)
+    eqSYS_0.saveRawData(fileName='data/rawData_3inches.csv', optimize=1)
+    #eqSYS_0.playFile = 'soundFile/noise10000Hz.wav'
+    #eqSYS_0.playandRecord()
+    #eqSYS_0.fft('soundFile/record.wav', plot=True)
+    #eqSYS_0.saveRawData_lowfreq(fileName='data/rawData_3inchs.csv', cutoff=10000)
     '''
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()

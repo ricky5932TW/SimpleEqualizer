@@ -57,13 +57,15 @@ plt.show()
 class NoiseGenerator:
     def __init__(self, name='soundFile/noise.wav', duration=5, sampleRate=384000, *args, **kwargs):
         super().__init__()
+        self.cutoff_frequency = 10000
         self.__duration = duration
         self.__sampleRate = sampleRate
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000,22000])
-        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20,0])
+        self.f = np.array([10, 20, 40, 210, 1000, 3000, 20000])
+        self.h = np.array([2, 2, 2, -3, 0, 10,  -20])
+
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -94,7 +96,7 @@ class NoiseGenerator:
         self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f),
                                   self.h)  # interpolate harman curve
         self.harman_response = np.zeros(self.__sample)
-        self.harman_response[self.freqs > 0] = 20 ** (self.interp_h / 20)  # convert dB to linear scale
+        self.harman_response[self.freqs > 0] = 10 ** (self.interp_h / 20)  # convert dB to linear scale
         self.harman_response[0] = 0  # avoid DC component gain
 
     def __apply(self):
@@ -109,7 +111,7 @@ class NoiseGenerator:
         self.__apply()
 
     def saveWav(self):
-        cutoff_frequency = 20000
+
         try:
             # remove old file
             os.remove(self.name)
@@ -119,7 +121,7 @@ class NoiseGenerator:
 
         # Apply the low-pass filter
         nyquist_frequency = self.__sampleRate / 2.0
-        critical_freq = cutoff_frequency / nyquist_frequency
+        critical_freq = self.cutoff_frequency / nyquist_frequency
         b, a = scipy.signal.butter(8, critical_freq, 'low')
         filtered_signal = scipy.signal.lfilter(b, a, scaled)
 
@@ -179,13 +181,16 @@ class NoiseGenerator:
         critical_freq = cutoff_frequency / nyquist_frequency
         b, a = scipy.signal.butter(8, critical_freq, 'low')
         filtered_signal = scipy.signal.lfilter(b, a, scaled)
-        wavfile.write(self.name, self.__sampleRate, scaled)
+        wavfile.write(self.name, self.__sampleRate, filtered_signal)
 
 
 if __name__ == '__main__':
 
     noise = NoiseGenerator(name='soundFile/noise.wav', reverse=1, duration=5)
-
+    noise.cutoff_frequency = 20000
+    noise.f = np.array([10, 20, 40, 210, 1000, 3000,9000,20000])
+    noise.h = np.array([2, 2, 2, -6, 0, 90,20,  -20])
+    noise.h = -noise.h
     noise.generate()
     noise.saveWav()
     noise.plot()

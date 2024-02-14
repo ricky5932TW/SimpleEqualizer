@@ -62,8 +62,8 @@ class NoiseGenerator:
         self.__result = None
         self.__sample = int(sampleRate * duration)
         self.__noise = np.random.randn(self.__sample)
-        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000, 25000,30000])
-        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20, -10,10])
+        self.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000,22000])
+        self.h = np.array([2, 2, 2, -3, 0, 10, 1, -20,0])
         self.name = name
         # checking **kwargs to reverse the curve
         if 'reverse' in kwargs:
@@ -94,7 +94,7 @@ class NoiseGenerator:
         self.interp_h = np.interp(np.log10(self.freqs[self.freqs > 0]), np.log10(self.f),
                                   self.h)  # interpolate harman curve
         self.harman_response = np.zeros(self.__sample)
-        self.harman_response[self.freqs > 0] = 10 ** (self.interp_h / 20)  # convert dB to linear scale
+        self.harman_response[self.freqs > 0] = 20 ** (self.interp_h / 20)  # convert dB to linear scale
         self.harman_response[0] = 0  # avoid DC component gain
 
     def __apply(self):
@@ -109,7 +109,7 @@ class NoiseGenerator:
         self.__apply()
 
     def saveWav(self):
-        cutoff_frequency = 22000
+        cutoff_frequency = 20000
         try:
             # remove old file
             os.remove(self.name)

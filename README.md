@@ -8,7 +8,7 @@ Spectrum after tuning
 ##
 ![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/result/3inchs/white_noise_with_noise_data.png)
 ##
-add peaking filter at 3300Hz with Q-factor = 0.7 and add gain on low frequency
+add peaking filter at 3300Hz 7dB with Q-factor = 0.7 and add gain on low frequency
 ![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/best_result.png)
 # SimpleEqualizer
 It can help you tune your stereo system easily.

@@ -1,4 +1,4 @@
-# Some results
+# Results
 ##
 Spectrum before tuning
 ##

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.io.wavfile import write
 from scipy.signal import chirp, equal_loudness_contour
 
+
 class SweepSignalGenerator:
     def __init__(self, sample_rate, duration):
         self.sample_rate = sample_rate
@@ -27,6 +28,7 @@ class SweepSignalGenerator:
         self.__interpolate()
         self.__apply()
         return self.__result
+
 
 # Parameters
 sample_rate = 384000  # in Hz

@@ -1,4 +1,4 @@
-from soundAnalyze import SoundAnalyzer
+from ..soundAnalyze import SoundAnalyzer
 
 if __name__ == '__main__':
     eqSYS_0 = SoundAnalyzer()

@@ -49,7 +49,7 @@ max_val = np.max(np.abs(sweep_signal))
 normalized_signal = sweep_signal / max_val
 
 # Save the signal as a .wav file
-write('sweep_signal.wav', sample_rate, normalized_signal.astype(np.float32))
+write('soundFile/sweep_signal.wav', sample_rate, normalized_signal.astype(np.float32))
 
 # fft the signal
 eqSYS_0 = SoundAnalyzer()

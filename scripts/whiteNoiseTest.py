@@ -1,4 +1,4 @@
-from soundAnalyze import SoundAnalyzer
+from ..soundAnalyze import SoundAnalyzer
 
 # Create a SoundAnalyzer object
 

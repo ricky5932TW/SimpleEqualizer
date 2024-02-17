@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas
 
 
-class TuningInstuctor():
+class TuningInstructor():
     def __init__(self, filename=None, averageGainFile=None,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gainAndFreq = None
@@ -42,11 +42,10 @@ class TuningInstuctor():
         print(self.criticalFreqs)
         print(self.gains)
         plt.plot(self.criticalFreqs, self.gains, label='responce')
-        plt.plot((0,20000), (self.gains[4],self.gains[4]), '--', label='average(target)')
+        plt.plot((0,20000), (self.gself.averageGain,self.self.averageGain), '--', label='average(target)')
         plt.xscale('log')
         plt.grid(True, which="both")
         plt.title('Spectrum')
-        plt.ylim([self.gains[3]-20, self.gains[3]+20])
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Gain (dB)')
         plt.savefig('spectrum.png')
@@ -55,7 +54,7 @@ class TuningInstuctor():
 
     def printInstruction(self):
         """finding how to tune the gain compared to 1000 Hz"""
-        stdGain = self.gains[4]
+        stdGain = self.self.averageGain
         diffGain = self.gains-stdGain
         # set diffGain as 0 when the absolute value is less than 3 dB
         diffGain[np.abs(diffGain) < 1] = 0
@@ -94,7 +93,7 @@ class TuningInstuctor():
 
 
 if __name__ == '__main__':
-    instructor = TuningInstuctor('separateData.csv', '1000HzGain.txt')
+    instructor = TuningInstructor('separateData.csv', '1000HzGain.txt')
     instructor.loadAverageGain()
     instructor.loadCSV()
     instructor.printInstruction()

@@ -187,7 +187,7 @@ if __name__ == '__main__':
     noise = NoiseGenerator(name='../../../SimpleEqualizer/soundFile/noise.wav', reverse=1, duration=5)
     noise.cutoff_frequency = 20000
     noise.f = np.array([10, 20, 40, 210, 1000, 3000, 9000, 20000])
-    noise.h = np.array([ 2,  2,  2,  -6,    0,   20,   2,   -20])
+    noise.h = np.array([ 0,  4,  4,  -6,    0,   20,   2,   -20])
     noise.h = -noise.h
     noise.generate()
     noise.saveWav()

@@ -78,6 +78,7 @@ class NoiseGenerator:
         # set the frequency response
         # x axis: frequency
         # y axis: gain
+        global newGain, newFreq
         _pass = 0
         try:
             newGain = np.array(gain)

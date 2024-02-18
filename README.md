@@ -1,3 +1,5 @@
+# SimpleEqualizer
+![](https://github.com/ricky5932TW/SimpleEqualizer/blob/main/icon.webp)
 # Results
 ##
 Spectrum before tuning

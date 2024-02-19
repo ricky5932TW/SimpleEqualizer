@@ -63,7 +63,7 @@ class TuningInstructor():
             # add 4 dB to the gain between 2000 and 6000 Hz
             for freq in range(2000, 6000, 100):
                 try:
-                    stdDiffGain[freq] += 5
+                    stdDiffGain[freq] += 4
                 except:
                     pass
         # if the gain is less than 1 , set it to 0

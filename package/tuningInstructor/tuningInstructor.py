@@ -4,7 +4,7 @@ import pandas
 
 
 class TuningInstructor():
-    def __init__(self, filename=None, averageGainFile=None,*args, **kwargs):
+    def __init__(self, filename=None, averageGainFile=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.gainAndFreq = None
         self.CSVFileName = filename
@@ -42,7 +42,7 @@ class TuningInstructor():
         print(self.criticalFreqs)
         print(self.gains)
         plt.plot(self.criticalFreqs, self.gains, label='responce')
-        plt.plot((0,20000), (self.gself.averageGain,self.self.averageGain), '--', label='average(target)')
+        plt.plot((0, 20000), (self.averageGain, self.averageGain), '--', label='average(target)')
         plt.xscale('log')
         plt.grid(True, which="both")
         plt.title('Spectrum')
@@ -52,24 +52,29 @@ class TuningInstructor():
         plt.legend()
         plt.show()
 
-    def printInstruction(self):
+    def printInstruction(self,vocal_enhance=False):
         """finding how to tune the gain compared to 1000 Hz"""
-        stdGain = self.self.averageGain
-        diffGain = self.gains-stdGain
-        # set diffGain as 0 when the absolute value is less than 3 dB
-        diffGain[np.abs(diffGain) < 1] = 0
-        #set diffGain half the original value when the absolute value is lager than 12dB
-        diffGain[np.abs(diffGain) > 12] = diffGain[np.abs(diffGain) > 12]/2
+        stdGain = self.averageGain
+        diffGain = self.gains - stdGain
         diffGain = -diffGain
         # print frequency and gain
         stdDiffGain = dict(zip(self.criticalFreqs, diffGain))
+        if vocal_enhance:
+            # add 4 dB to the gain between 2000 and 6000 Hz
+            for freq in range(2000, 6000, 100):
+                try:
+                    stdDiffGain[freq] += 4
+                except:
+                    pass
+        # if the gain is less than 1 , set it to 0
+        for freq in stdDiffGain:
+            if np.abs(stdDiffGain[freq]) < 1:
+                stdDiffGain[freq] = 0
+        # if the gain is more than 12, then multiply 1/2
+        for freq in stdDiffGain:
+            if stdDiffGain[freq] > 12:
+                stdDiffGain[freq] *= 0.5
         print(stdDiffGain)
-
-
-
-
-
-
 
     def savePlot(self, fileName='sensitivity.png'):
         if self.__checkInit():

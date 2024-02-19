@@ -26,7 +26,7 @@ def timing(func):
 class SoundAnalyzer():
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gain1000 = None
+        self.gain1000 = 0
         self.lowerBound = 150
         self.gainbias = 15
         self.playFile = 'soundFile/noise.wav'
@@ -175,7 +175,6 @@ class SoundAnalyzer():
 
     def saveSeparateData(self, fileName='separateData.csv', optimize=False):
         """ save the data in csv file"""
-        self.gain1000 = 0
         oldCsvY = np.zeros(1)
         oldCsvX = np.zeros(1)
         if optimize:
@@ -185,12 +184,13 @@ class SoundAnalyzer():
                 oldCsvY = np.array(self.oldCSVData['gain'])
             except:
                 print('No old data, please run the program without optimization first')
+
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)  # find the position of the point
-            y = signal.savgol_filter(self.r_fft, 142, 2)  # smooth the data
-            part_y = y[position - int(point / 2.1): position + int(point / 2.1)]  # get the data around the point
+            y = signal.savgol_filter(self.r_fft, 571, 1)  # smooth the data
+            part_y = y[position - int(point /1.3): position + int(point /1.3)]  # get the data around the point
             self.ana_gain.append(
-                20 * np.log(np.mean(list(filter(lambda x: x > 0.7 * np.max(part_y), part_y)))))  # get the average gain
+                10 * np.log(np.mean(list(filter(lambda x: x > 0.7 * np.max(part_y), part_y)))))  # get the average gain
             if point == 1000:
                 self.gain1000 = self.ana_gain[-1]
         print(self.ana_gain)
@@ -208,6 +208,7 @@ class SoundAnalyzer():
                     self.gain1000 = self.ana_gain[i]
 
             print(str(count) + ' / ' + str(len(self.points)))
+
         # save as csv
         df = pd.DataFrame({'freqs': self.points, 'gain': self.ana_gain})
         df.to_csv(fileName, index=False)
@@ -226,10 +227,10 @@ class SoundAnalyzer():
         # get the gain of 1000Hz
         if self.gain1000 is None or self.gain1000 == 0:
             position = self.find_nearest(self.ana_frequency, 1000, position=True)
-            gain1000 = 20 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
+            self.gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
         # save the gain of 1000Hz
         with open(fileName, 'w') as f:
-            f.write(str(gain1000))
+            f.write(str(self.gain1000))
         # save in txt file
 
     @staticmethod

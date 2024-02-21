@@ -1,0 +1,23 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+header, nav, #content {
+    margin: 20px;
+    padding: 10px;
+}
+
+nav ul {
+    list-style-type: none;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+#images img {
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+}

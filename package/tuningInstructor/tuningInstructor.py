@@ -21,16 +21,6 @@ class TuningInstructor():
             self.averageGain = float(f.read())
 
     def loadCSV(self):
-        """
-        freqs,gain
-        20,70.69343350982481
-        40,75.86023778172492
-        210,74.99762659617589
-        1000,78.31608365525997
-        3000,76.77828485652836
-        9000,72.79308333409435
-        20000,70.12100273365037
-        """
         data = pandas.read_csv(self.CSVFileName)
         self.status = 'loadCSV'
         self.criticalFreqs = np.array(data['freqs'])
@@ -76,21 +66,18 @@ class TuningInstructor():
                 stdDiffGain[freq] *= 0.5
         print(stdDiffGain)
 
-    def savePlot(self, fileName='sensitivity.png'):
-        if self.__checkInit():
-            plt.figure(figsize=(10, 5))
-            plt.plot(self.normalnoise.freqs, self.normalnoise.r_fft, label='normal')
-            plt.plot(self.boostnoise.freqs, self.boostnoise.r_fft, label='boost')
-            plt.xscale('log')
-            plt.grid(True, which="both")
-            plt.legend()
-            plt.savefig(fileName)
-            plt.close()
-            self.status = 'Success'
-            print('Success')
-            return True
-        else:
-            return False
+    def savePlot(self, fileName='../../temp_img/separated_spectrum.png'):
+        plt.plot(self.criticalFreqs, self.gains, label='responce')
+        plt.plot((0, 20000), (self.averageGain, self.averageGain), '--', label='average(target)')
+        plt.xscale('log')
+        plt.grid(True, which="both")
+        plt.title('Spectrum')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Gain (dB)')
+        plt.legend()
+        plt.savefig(fileName)
+
+
 
     def __checkInit(self):
         if self.CSVFileName is None:
@@ -98,7 +85,8 @@ class TuningInstructor():
 
 
 if __name__ == '__main__':
-    instructor = TuningInstructor('separateData.csv', '1000HzGain.txt')
+    instructor = TuningInstructor('../../data/separateData.csv', '../../data/1000HzGain.txt')
     instructor.loadAverageGain()
     instructor.loadCSV()
     instructor.printInstruction()
+    instructor.savePlot()

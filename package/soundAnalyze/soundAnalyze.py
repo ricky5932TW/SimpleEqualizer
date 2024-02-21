@@ -38,10 +38,9 @@ class SoundAnalyzer():
         self.ana_gain = []
         self.ana_frequency = None
         self.r_fft = None
-        self.recordingname = None
+        self.recordingName = None
         self.__closeflag = False
         self.fftData = None
-        self.mixxspectrum = None
         self.points = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         # self.points = [125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         self.gainDiff = []
@@ -61,23 +60,6 @@ class SoundAnalyzer():
 
     @timing
     def play(self):
-        # play the noise.wav by pyaudio
-        '''
-        chunk = 2**1000000
-        wf = wave.open(self.playFile, 'rb')
-        p = pyaudio.PyAudio()
-        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                        channels=wf.getnchannels(),
-                        rate=wf.getframerate(),
-                        output=True)
-        data = wf.readframes(chunk)
-        while data != b'':
-            stream.write(data)
-            data = wf.readframes(chunk)
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-        '''
         # play the noise.wav by pygames
         pygame.mixer.init()
         pygame.mixer.music.load(self.playFile)
@@ -87,7 +69,7 @@ class SoundAnalyzer():
 
     @timing
     def record_audio(self, record_second=4):
-        self.__removeOldWav(self.recordingname)  # remove old noise.wav
+        self.__removeOldWav(self.recordingName)  # remove old noise.wav
         CHUNK = 2 ** 19  # 每个缓冲区的帧数
         FORMAT = pyaudio.paInt32  # 采样位数
         CHANNELS = 1  # 单声道
@@ -99,7 +81,7 @@ class SoundAnalyzer():
                         rate=RATE,
                         input=True,
                         frames_per_buffer=CHUNK)  # 打开流，传入响应参数
-        wf = wave.open(self.recordingname, 'wb')  # 打开 wav 文件。
+        wf = wave.open(self.recordingName, 'wb')  # 打开 wav 文件。
         wf.setnchannels(CHANNELS)  # 声道设置
         wf.setsampwidth(p.get_sample_size(FORMAT))  # 采样位数设置
         wf.setframerate(RATE)  # 采样频率设置
@@ -121,7 +103,7 @@ class SoundAnalyzer():
         except:
             pass
 
-    def fft(self, wave, plot=False, **kwargs):
+    def fft(self, wave, plot=False, save_fig=False, fig_name='FFT of Signal', output_filename='fft.png', **kwargs):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
         waveData = waveData * np.hamming(len(waveData))  # apply hamming window
@@ -144,15 +126,22 @@ class SoundAnalyzer():
             plt.plot(x, y)
             plt.xlabel('Frequency (Hz)')
             plt.ylabel('Magnitude (dB)')
-            plt.title('FFT of Signal')
-
+            plt.title(fig_name)
             plt.xlim(20, 20000)
             # plt.ylim(80, 115)
             plt.xscale('log')
             plt.grid()
             plt.show()
-            # save the figure
-            # fig.savefig('fft10db.png')
+
+        if save_fig:
+            plt.plot(x, y)
+            plt.xlabel('Frequency (Hz)')
+            plt.ylabel('Magnitude (dB)')
+            plt.title(fig_name)
+            plt.xlim(20, 20000)
+            plt.xscale('log')
+            plt.grid()
+            plt.savefig(output_filename)
 
     @staticmethod
     def __readWav(_wave):
@@ -188,7 +177,7 @@ class SoundAnalyzer():
         for point in self.points:
             position = self.find_nearest(self.ana_frequency, point, position=True)  # find the position of the point
             y = signal.savgol_filter(self.r_fft, 571, 1)  # smooth the data
-            part_y = y[position - int(point /1.3): position + int(point /1.3)]  # get the data around the point
+            part_y = y[position - int(point / 1.3): position + int(point / 1.3)]  # get the data around the point
             self.ana_gain.append(
                 10 * np.log(np.mean(list(filter(lambda x: x > 0.7 * np.max(part_y), part_y)))))  # get the average gain
             if point == 1000:
@@ -233,11 +222,6 @@ class SoundAnalyzer():
             f.write(str(self.gain1000))
         # save in txt file
 
-    @staticmethod
-    def rms(data):
-        return np.mean(data)
-        # return np.sqrt(np.mean(np.square(data)))
-
     def saveRawData(self, fileName='rawData.csv', optimize=False, cutoff=0):
         # delete the old file
         oldCsvY = np.zeros(1)
@@ -253,7 +237,6 @@ class SoundAnalyzer():
             os.remove(fileName)
         except:
             pass
-        old1000Hz = oldCsvY[self.find_nearest(oldCsvX, 1000, position=True)]
 
         position = self.find_nearest(self.ana_frequency, 1000, position=True)
         gain1000 = 10 * np.log(np.mean(self.r_fft[position - int(1000 / 10): position + int(1000 / 10)]))
@@ -286,59 +269,12 @@ class SoundAnalyzer():
         df = pd.DataFrame({'freqs': x, 'gain': y})
         df.to_csv(fileName, index=False)
 
-    def saveRawData_lowfreq(self, fileName='rawData.csv', optimize=True, cutoff=10000):
-        '''use wav file with full frequency range to get the raw data then use wav file with cutoff frequency to shape
-        the curve more accurately on low frequency'''
-        # delete the old file
-        oldCsvY = np.zeros(1)
-        oldCsvX = np.zeros(1)
-        if optimize:
-            try:
-                self.oldCSVData = pd.read_csv(fileName)
-                oldCsvX = np.array(self.oldCSVData['freqs'])
-                oldCsvY = np.array(self.oldCSVData['gain'])
-            except:
-                print('No old data, please run the program without optimization first')
-        try:
-            os.remove(fileName)
-        except:
-            pass
-
-        position1000Hz = self.find_nearest(self.ana_frequency, 1000, position=True)
-        gain1000Hz = 10 * np.log(np.mean(self.r_fft[position1000Hz - int(1000 / 10): position1000Hz + int(1000 / 10)]))
-        positionCutoff = self.find_nearest(self.ana_frequency, cutoff, position=True)
-        # save with pandas
-        # 55 -> about 20Hz, little less than 20Hz
-        # 150 -> about 50Hz, most speakers can't play lower than 50Hz, except for subwoofer
-        x = self.ana_frequency[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1]  # get the frequency
-        # set the frequency below 50Hz as half of the original value make the curve more smooth and keeping
-        # it has enough margin
-        y = (20 * np.log10(
-            self.r_fft[self.lowerBound:int(len(self.ana_frequency) / 4.7) - 1])) - gain1000Hz + self.gainbias
-        y = -y  # reverse the curve
-
-        if optimize:
-            # check if the new data is similar to the old data, if yes, use the new data, if not, use the old data +
-            # 0.3 *new data
-            count = 0
-            for i in range(positionCutoff - self.lowerBound):
-                if np.abs(y[i] - oldCsvY[i]) < 0.1:
-                    y[i] = oldCsvY[i]
-                else:
-                    y[i] = oldCsvY[i] + (0.5 * y[i])
-                    count += 1
-            print(str(count) + ' / ' + str(positionCutoff - self.lowerBound))
-        # smooth the data
-        y[:positionCutoff + 100] = signal.savgol_filter(y[:positionCutoff + 100], 193, 3)
-        df = pd.DataFrame({'freqs': x, 'gain': y})
-        df.to_csv(fileName, index=False)
-
 
 if __name__ == '__main__':
     # for making a complete tuning data
     eqSYS_0 = SoundAnalyzer()
     eqSYS_0.lowerBound = 150
-    eqSYS_0.recordingname = 'soundFile/record.wav'
+    eqSYS_0.recordingName = 'soundFile/record.wav'
     eqSYS_0.playFile = 'sweep_signal.wav'
     eqSYS_0.playandRecord()
     eqSYS_0.fft('soundFile/record.wav', plot=1, smooth=True)
@@ -351,7 +287,7 @@ if __name__ == '__main__':
     # for making a tuning data with signed frequency
     eqSYS_1 = SoundAnalyzer()
     eqSYS_1.points = np.array([63,125,250,500,1000,2000,4000,8000,16000])
-    eqSYS_1.recordingname = 'record.wav'
+    eqSYS_1.recordingName = 'record.wav'
     eqSYS_1.playFile = 'noise.wav'
     eqSYS_1.playandRecord()
     eqSYS_1.fft('record.wav', plot=True)

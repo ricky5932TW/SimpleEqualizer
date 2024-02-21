@@ -1,4 +1,8 @@
+import os
+import time
+
 from flask import Flask, render_template, jsonify, request
+import webbrowser
 
 app = Flask(__name__)
 
@@ -34,4 +38,8 @@ def update_content():
 
 
 if __name__ == '__main__':
+    # Run the app and open the browser
+    webbrowser.open('http://127.0.0.1:5000/', new=1)
+    time.sleep(1)
     app.run(debug=True)
+

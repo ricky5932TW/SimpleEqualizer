@@ -103,6 +103,9 @@ class SoundAnalyzer():
         except:
             pass
 
+
+
+
     def fft(self, wave, plot=False, save_fig=False, fig_name='FFT of Signal', output_filename='fft.png', **kwargs):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
@@ -111,6 +114,8 @@ class SoundAnalyzer():
         self.r_fft = np.fft.rfft(waveData)  # do fft
         self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
         self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
+        # kalman filter
+
         self.r_fft = signal.savgol_filter(self.r_fft, 71, 4)  # smooth the data
         self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
         """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 

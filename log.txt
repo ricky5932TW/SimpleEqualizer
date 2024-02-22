@@ -23,6 +23,13 @@ to-arrange
 2024/1/20 finish the first version of the project
 2024/1/30 rearrange the code and make it more readable and the whole project include the paper
 
+To-Do
+
+1. fix the fft problem in white noise test
+2. do formal test for the speaker system
+3. finish interface
+4. change savgol filter to kalman filter
+
 
 -----------------2024/1/3-----------------
 1. do the fft for the recorded data
@@ -41,3 +48,5 @@ to-arrange
 -----------------2024/1/20-----------------
 1. add low pass filter when save the wav, or it will be too large when normalizing
 2. depth from 64bit to 32bit
+
+-----------------2024/2/22-----------------

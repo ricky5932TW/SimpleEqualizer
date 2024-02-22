@@ -111,7 +111,7 @@ class SoundAnalyzer():
         self.r_fft = np.fft.rfft(waveData)  # do fft
         self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
         self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
-        self.r_fft = signal.savgol_filter(self.r_fft, 197, 4)  # smooth the data
+        self.r_fft = signal.savgol_filter(self.r_fft, 71, 4)  # smooth the data
         self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
         """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
         384000Hz, quad when it is 762000Hz. I don't know why"""

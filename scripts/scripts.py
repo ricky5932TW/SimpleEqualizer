@@ -3,47 +3,38 @@ from SimpleEqualizer.package.tuningInstructor.tuningInstructor import TuningInst
 from SimpleEqualizer.package.soundAnalyze.soundAnalyze import SoundAnalyzer
 
 
-def saveStatus():
-    def wrapper(func):
-        # Save the method's name in txt file
-        with open('../../status.txt', 'w') as f:
-            f.write(func.__name__)
-        return func
+
 
 
 class SimpleEqualizer:
-    def __init__(self, *args, **kwargs):
-        super().__init__()
 
-    @saveStatus()
+
     @staticmethod
     def analyze_without_optimize(lowerBound=150, recordingName='../../SimpleEqualizer/soundFile/record.wav',
                                  playFile='../../SimpleEqualizer/soundFile/noise.wav',
                                  fileName='../../SimpleEqualizer/data/rawData.csv', fig_name='difference',
-                                 output_filename='../../SimpleEqualizer/data/full.png', *args, **kwargs):
-        eqSYS = SoundAnalyzer()
-        eqSYS.lowerBound = lowerBound
-        eqSYS.recordingName = recordingName
-        eqSYS.playFile = playFile
-        eqSYS.playandRecord()
-        eqSYS.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
-        eqSYS.saveRawData(fileName=fileName, optimize=False)
+                                 output_filename='../temp_img/full.png', *args, **kwargs):
+        eqSYS0 = SoundAnalyzer()
+        eqSYS0.lowerBound = lowerBound
+        eqSYS0.recordingName = recordingName
+        eqSYS0.playFile = playFile
+        eqSYS0.playandRecord()
+        eqSYS0.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
+        eqSYS0.saveRawData(fileName=fileName, optimize=False)
 
-    @saveStatus()
     @staticmethod
     def analyze_with_optimize(lowerBound=150, recordingName='../../SimpleEqualizer/soundFile/record.wav',
                               playFile='../../SimpleEqualizer/soundFile/noise.wav',
                               fileName='../../SimpleEqualizer/data/rawData.csv', fig_name='difference',
-                              output_filename='../../SimpleEqualizer/data/full.png', *args, **kwargs):
-        eqSYS = SoundAnalyzer()
-        eqSYS.lowerBound = lowerBound
-        eqSYS.recordingName = recordingName
-        eqSYS.playFile = playFile
-        eqSYS.playandRecord()
-        eqSYS.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
-        eqSYS.saveRawData(fileName=fileName, optimize=True)
+                              output_filename='../temp_img/full.png', *args, **kwargs):
+        eqSYS1 = SoundAnalyzer()
+        eqSYS1.lowerBound = lowerBound
+        eqSYS1.recordingName = recordingName
+        eqSYS1.playFile = playFile
+        eqSYS1.playandRecord()
+        eqSYS1.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
+        eqSYS1.saveRawData(fileName=fileName, optimize=True)
 
-    @saveStatus()
     @staticmethod
     def instructor(points=np.array([63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000]),
                    recordingName='../../SimpleEqualizer/soundFile/record.wav',
@@ -51,30 +42,29 @@ class SimpleEqualizer:
                    separateDataFileName='../../SimpleEqualizer/data/separateData.csv',
                    gainFileName='../../SimpleEqualizer/data/1000HzGain.txt',
                    *args, **kwargs):
-        eqSYS = SoundAnalyzer()
-        eqSYS.lowerBound = 0
-        eqSYS.points = points
-        eqSYS.recordingName = recordingName
-        eqSYS.playFile = playFile
-        eqSYS.playandRecord()
-        eqSYS.fft(recordingName, smooth=True)
-        eqSYS.saveSeparateData(fileName=separateDataFileName, optimize=0)
-        eqSYS.save1000HzGain(fileName=gainFileName)
-        instructor = TuningInstructor(separateDataFileName, gainFileName)
-        instructor.loadAverageGain()
-        instructor.loadCSV()
-        instructor.printInstruction(vocal_enhance=True)
-        instructor.savePlot()
+        eqSYS2 = SoundAnalyzer()
+        eqSYS2.lowerBound = 0
+        eqSYS2.points = points
+        eqSYS2.recordingName = recordingName
+        eqSYS2.playFile = playFile
+        eqSYS2.playandRecord()
+        eqSYS2.fft(recordingName, smooth=True)
+        eqSYS2.saveSeparateData(fileName=separateDataFileName, optimize=0)
+        eqSYS2.save1000HzGain(fileName=gainFileName)
+        instructor0 = TuningInstructor(separateDataFileName, gainFileName)
+        instructor0.loadAverageGain()
+        instructor0.loadCSV()
+        instructor0.printInstruction(vocal_enhance=True)
+        instructor0.savePlot()
 
-    @saveStatus()
     @staticmethod
     def white_noise_test(recordingName='../../SimpleEqualizer/soundFile/record.wav',
                          playFile='../../SimpleEqualizer/soundFile/whiteNoise.wav',
-                         fig_name='Spectrum', output_filename='../../SimpleEqualizer/data/Spectrum.png', *args,
+                         fig_name='Spectrum', output_filename='../temp_img/Spectrum.png', *args,
                          **kwargs):
-        eqSYS = SoundAnalyzer()
-        eqSYS.recordingName = recordingName
-        eqSYS.playFile = playFile
-        eqSYS.playandRecord()
-        eqSYS.fft('../../SimpleEqualizer/soundFile/record.wav', save_fig=True, smooth=1, fig_name=fig_name,
+        eqSYS3 = SoundAnalyzer()
+        eqSYS3.recordingName = recordingName
+        eqSYS3.playFile = playFile
+        eqSYS3.playandRecord()
+        eqSYS3.fft('../../SimpleEqualizer/soundFile/record.wav', save_fig=True, smooth=1, fig_name=fig_name,
                   output_filename=output_filename)

@@ -39,7 +39,7 @@ To-Do
 2. new function can find the corresponding gain for each frequency
 
 -----------------2024/1/15-----------------
-1. design how to tune the gain defination between eq and code
+1. design how to tune the gain definition between eq and code
 
 -----------------2024/1/16 -> 1/19-----------------
 1. fix dumb fft problem

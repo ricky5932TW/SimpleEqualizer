@@ -46,6 +46,7 @@ class SoundAnalyzer():
         self.gainDiff = []
 
     def playandRecord(self):
+        '''play noise.wav and record the sound at the same time by multithreading'''
         print('playandRecord start')
         # play noise.wav and record the sound at the same time by multiprocessing
         t_play = threading.Thread(target=self.play)  # play noise.wav
@@ -69,22 +70,23 @@ class SoundAnalyzer():
 
     @timing
     def record_audio(self, record_second=4):
+        '''record the sound for 4 seconds and save it as noise.wav'''
         self.__removeOldWav(self.recordingName)  # remove old noise.wav
-        CHUNK = 2 ** 19  # 每个缓冲区的帧数
-        FORMAT = pyaudio.paInt32  # 采样位数
-        CHANNELS = 1  # 单声道
-        RATE = 384000  # 采样频率
+        CHUNK = 2 ** 19  # the size of the input buffer
+        FORMAT = pyaudio.paInt32  # data type
+        CHANNELS = 1  # number of channels
+        RATE = 384000  # sample rate
         """ 录音功能 """
         p = pyaudio.PyAudio()  # 实例化对象
         stream = p.open(format=FORMAT,
                         channels=CHANNELS,
                         rate=RATE,
                         input=True,
-                        frames_per_buffer=CHUNK)  # 打开流，传入响应参数
-        wf = wave.open(self.recordingName, 'wb')  # 打开 wav 文件。
-        wf.setnchannels(CHANNELS)  # 声道设置
-        wf.setsampwidth(p.get_sample_size(FORMAT))  # 采样位数设置
-        wf.setframerate(RATE)  # 采样频率设置
+                        frames_per_buffer=CHUNK)  # stream
+        wf = wave.open(self.recordingName, 'wb')  # open the wave file
+        wf.setnchannels(CHANNELS)  # set the number of channels
+        wf.setsampwidth(p.get_sample_size(FORMAT))  # set the sample width
+        wf.setframerate(RATE)  # set the frame rate
 
         for _ in range(0, int(RATE * record_second / CHUNK)):
             data = stream.read(CHUNK)
@@ -109,13 +111,11 @@ class SoundAnalyzer():
     def fft(self, wave, plot=False, save_fig=False, fig_name='FFT of Signal', output_filename='fft.png', **kwargs):
         # read the wave file then do fft and plot
         waveData, framerate = self.__readWav(wave)  # read the wave file
-        waveData = waveData * np.hamming(len(waveData))  # apply hamming window
+        #waveData = waveData * np.hamming(len(waveData))  # apply hamming window
 
         self.r_fft = np.fft.rfft(waveData)  # do fft
         self.r_fft = np.abs(self.r_fft / np.mean(self.r_fft))  # normalize the fft result
         self.r_fft = np.hamming(len(self.r_fft)) * self.r_fft  # apply hamming window
-        # kalman filter
-
         self.r_fft = signal.savgol_filter(self.r_fft, 71, 4)  # smooth the data
         self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
         """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
@@ -126,9 +126,9 @@ class SoundAnalyzer():
             if kwargs['smooth']:
                 y = signal.savgol_filter(y, 273, 2)
 
+        plt.plot(x, y)
         if plot:  # plot the result
             # biggest 30% of the fft result
-            plt.plot(x, y)
             plt.xlabel('Frequency (Hz)')
             plt.ylabel('Magnitude (dB)')
             plt.title(fig_name)
@@ -139,14 +139,17 @@ class SoundAnalyzer():
             plt.show()
 
         if save_fig:
-            plt.plot(x, y)
             plt.xlabel('Frequency (Hz)')
             plt.ylabel('Magnitude (dB)')
             plt.title(fig_name)
             plt.xlim(20, 20000)
             plt.xscale('log')
             plt.grid()
-            plt.savefig(output_filename)
+            # set dpi = 800
+            plt.savefig(output_filename, dpi=800)
+        plt.close()
+
+
 
     @staticmethod
     def __readWav(_wave):

@@ -1,5 +1,5 @@
 from scripts import SimpleEqualizer
 
 if __name__ == '__main__':
-    SimpleEqualizer.analyze_with_optimize(fileName='../data/rawData_k92.csv', lowerBound=0)
+    SimpleEqualizer.analyze_with_optimize(fileName='../data/rawData_mi_stereo.csv', lowerBound=300)
     SimpleEqualizer.white_noise_test()

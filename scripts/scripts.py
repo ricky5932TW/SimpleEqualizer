@@ -3,11 +3,7 @@ from SimpleEqualizer.package.tuningInstructor.tuningInstructor import TuningInst
 from SimpleEqualizer.package.soundAnalyze.soundAnalyze import SoundAnalyzer
 
 
-
-
-
 class SimpleEqualizer:
-
 
     @staticmethod
     def analyze_without_optimize(lowerBound=150, recordingName='../../SimpleEqualizer/soundFile/record.wav',
@@ -63,8 +59,15 @@ class SimpleEqualizer:
                          fig_name='Spectrum', output_filename='../temp_img/Spectrum.png', *args,
                          **kwargs):
         eqSYS3 = SoundAnalyzer()
+        if 'lowerBound' in kwargs:
+            eqSYS3.lowerBound = kwargs['lowerBound']
         eqSYS3.recordingName = recordingName
         eqSYS3.playFile = playFile
         eqSYS3.playandRecord()
-        eqSYS3.fft('../../SimpleEqualizer/soundFile/record.wav', save_fig=True, smooth=1, fig_name=fig_name,
-                  output_filename=output_filename)
+        eqSYS3.fft('../../SimpleEqualizer/soundFile/record.wav', save_fig=True, smooth=True, fig_name=fig_name,
+                   output_filename=output_filename)
+        if 'save_raw' in kwargs:
+            if kwargs['optimize']:
+                eqSYS3.saveRawData(fileName=kwargs['save_raw'], optimize=True)
+            else:
+                eqSYS3.saveRawData(fileName=kwargs['save_raw'], optimize=False)

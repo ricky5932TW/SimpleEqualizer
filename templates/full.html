@@ -7,6 +7,12 @@
     <script src="/static/script.js"></script>
 </head>
 <body>
+    <form id="initialize" action="/initialize" method="post">
+        <div>
+            <label for="input1">standard:</label>
+            <input type="text" id="input1" name="input1">
+        </div>
+    </form>
     <div id="content">
         <div id="instruction">Initial Instruction</div>
         <div id="status">Initial Status</div>
@@ -15,6 +21,9 @@
             <img id="pic2" src="path_to_initial_pic2.jpg" alt="Pic 2">
         </div>
         <button onclick="updateContent()">Start</button>
+    </div>
+    <div>
+
     </div>
 </body>
 </html>

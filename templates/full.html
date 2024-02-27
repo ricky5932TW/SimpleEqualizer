@@ -2,28 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Full Interface</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/script.js"></script>
 </head>
+
+
 <body>
+
     <form id="initialize" action="/initialize" method="post">
         <div>
-            <label for="input1">standard:</label>
-            <input type="text" id="input1" name="input1">
+            <label for="standard">standard:</label>
+            <input type="text" id="standard" name="standard">
+            <br>
+            <label for="lower_bound">lower_bound:</label>
+            <input type="text" id="lower_bound" name="lower_bound">
+            <br>
+            <label for="filePATH">file_path:</label>
+            <input type="text" id="filePATH" name="filePATH">
         </div>
     </form>
     <div id="content">
-        <div id="instruction">Initial Instruction</div>
         <div id="status">Initial Status</div>
         <div id="images">
-            <img id="pic1" src="path_to_initial_pic1.jpg" alt="Pic 1">
-            <img id="pic2" src="path_to_initial_pic2.jpg" alt="Pic 2">
+            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
+            <img id="pic2" src="/static/cover.png " alt="Pic 2">
         </div>
-        <button onclick="updateContent()">Start</button>
+        <button onclick="updateImg()">Start</button>
     </div>
+
     <div>
 
     </div>
 </body>
 </html>
+
+
+<!-- run  updateContent as routine-->

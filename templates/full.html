@@ -16,27 +16,29 @@
     <form id="initialize" action="/initialize" method="post">
         <div>
             <label for="standard">standard:</label>
-            <input type="text" id="standard" name="standard">
+            <input type="text" id="standard" name="standard" value="{{ standard | default('') }}">
             <br>
             <label for="lower_bound">lower_bound:</label>
-            <input type="text" id="lower_bound" name="lower_bound">
+            <input type="text" id="lower_bound" name="lower_bound" value="{{ lower_bound | default('') }}">
             <br>
             <label for="filePATH">file_path:</label>
-            <input type="text" id="filePATH" name="filePATH">
+            <input type="text" id="filePATH" name="filePATH" value="{{ filePATH | default('') }}">
+            <br>
+            <button type="submit">Start</button>
+            <button type="submit">Optimize</button>
         </div>
     </form>
+
+
+
     <div id="content">
-        <div id="status">Initial Status</div>
+        <div id="status">Initializing </div>
         <div id="images">
             <img id="pic1" src="/static/cover.png " alt="Pic 1" >
             <img id="pic2" src="/static/cover.png " alt="Pic 2">
         </div>
-        <button onclick="updateImg()">Start</button>
     </div>
 
-    <div>
-
-    </div>
 </body>
 </html>
 

@@ -17,10 +17,17 @@ function updateImg_json() {
 
             fetch('/img')
                 .then(response => response.json())
+                // forbidden cache on web browser
+                .then(data => {
+                    pic1.src = data.spectrum + '?' + new Date().getTime();
+                    pic2.src = data.full + '?' + new Date().getTime();
+                })
+                /*
                 .then(data => {
                     pic1.src = data.spectrum;
                     pic2.src = data.full;
                 })
+                */
                 .catch(error => console.error('Error:', error));
             console.log("updateImg");
         }
@@ -41,7 +48,7 @@ function updateStatus() {
 
 //setInterval(updateImg, 1000);
 setInterval(updateImg_json, 1000);
-setInterval(updateStatus, 1000);
+setInterval(updateStatus, 500);
 
 
 

@@ -59,7 +59,6 @@ class SoundAnalyzer():
         t_record.join()  # wait for the thread to finish
         print('playandRecord end')
 
-    @timing
     def play(self):
         # play the noise.wav by pygames
         pygame.mixer.init()
@@ -68,7 +67,6 @@ class SoundAnalyzer():
         while pygame.mixer.music.get_busy():
             time.sleep(0.1)
 
-    @timing
     def record_audio(self, record_second=4):
         '''record the sound for 4 seconds and save it as noise.wav'''
         self.__removeOldWav(self.recordingName)  # remove old noise.wav

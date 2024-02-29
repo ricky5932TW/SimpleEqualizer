@@ -1,8 +1,16 @@
 import os
 import time
 import threading
+import multiprocessing
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import webbrowser
+from measurement import Measurement_mission
+
+
+def write_txt(data, filename='static/status.txt'):
+    with open(filename, 'w') as f:
+        f.write(data)
+
 
 app = Flask(__name__)
 
@@ -29,18 +37,33 @@ def initialize():
     standard = request.form['standard']
     lower_bound = request.form['lower_bound']
     filePATH = request.form['filePATH']
-    meausre_thread = threading.Thread(target=meausre, args=(standard, lower_bound, filePATH))
+    optimize = request.form['optimize']
 
-    print(standard, lower_bound, filePATH)
-    return render_template('full.html', standard=standard, lower_bound=lower_bound, filePATH=filePATH)
+    t1 = threading.Thread(target=Measurement_mission.Measurement, args=(standard, lower_bound, filePATH, optimize))
+    t1.start()
+
+
+    print(standard, type(standard))
+    print(lower_bound, type(lower_bound))
+    print(filePATH, type(filePATH))
+    print(optimize, type(optimize))
+
+    # print datatype
+
+    return render_template('full.html', standard=standard, lower_bound=lower_bound, filePATH=filePATH,
+                           optimize=optimize)
+
 
 @app.route('/img')
 def image():
     return jsonify(full="/static/temp_img/full.png", spectrum="/static/temp_img/Spectrum.png")
 
+
 @app.route('/status')
 def get_text():
-    return jsonify(status)
+    with open('static/status.txt', 'r') as f:
+        status = f.read()
+    return jsonify({'status': status})
 
 
 # Endpoint for updating the content
@@ -56,6 +79,7 @@ def update_content():
 
 
 if __name__ == '__main__':
+    write_txt('press start to begin')
     webbrowser.open('http://127.0.0.1:5000/')
     time.sleep(1)
     app.run(debug=True)

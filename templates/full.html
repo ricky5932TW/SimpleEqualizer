@@ -16,18 +16,20 @@
     <form id="initialize" action="/initialize" method="post">
         <div>
             <label for="standard">standard:</label>
-            <input type="text" id="standard" name="standard" value="{{ standard | default('') }}">
+            <input type="text" id="standard" name="standard" value="{{ standard | default('soundFile/noise.wav') }}">
             <br>
             <label for="lower_bound">lower_bound:</label>
-            <input type="text" id="lower_bound" name="lower_bound" value="{{ lower_bound | default('') }}">
+            <input type="text" id="lower_bound" name="lower_bound" value="{{ lower_bound | default('150') }}">
             <br>
             <label for="filePATH">file_path:</label>
-            <input type="text" id="filePATH" name="filePATH" value="{{ filePATH | default('') }}">
+            <input type="text" id="filePATH" name="filePATH" value="{{ filePATH | default('data/rawData.csv') }}">
             <br>
+            <label>optimize( 0 / 1 ):</label>
+            <input type="text" id="optimize" name="optimize" value="{{ optimize | default('0') }}">
             <button type="submit">Start</button>
-            <button type="submit">Optimize</button>
         </div>
     </form>
+    <button onclick="updateImg_json()">refresh Images</button>
 
 
 

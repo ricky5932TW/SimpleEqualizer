@@ -1,4 +1,6 @@
 import os
+import signal
+import sys
 import time
 import threading
 import multiprocessing
@@ -32,8 +34,8 @@ def limited():
     return render_template('limited.html')
 
 
-@app.route('/initialize', methods=['POST'])
-def initialize():
+@app.route('/measure', methods=['POST'])
+def measure():
     standard = request.form['standard']
     lower_bound = request.form['lower_bound']
     filePATH = request.form['filePATH']
@@ -41,7 +43,6 @@ def initialize():
 
     t1 = threading.Thread(target=Measurement_mission.Measurement, args=(standard, lower_bound, filePATH, optimize))
     t1.start()
-
 
     print(standard, type(standard))
     print(lower_bound, type(lower_bound))
@@ -54,6 +55,21 @@ def initialize():
                            optimize=optimize)
 
 
+@app.route('/measure_limited', methods=['POST'])
+def measure_limited():
+    band_raw = request.form['band']
+    band = band_raw.split()
+    # turn string to int
+    band = list(map(int, band))
+
+    t1 = threading.Thread(target=Measurement_mission.Measurement_limited, args=band)
+    t1.start()
+
+    # print datatype
+
+    return render_template('limited.html', band=band)
+
+
 @app.route('/img')
 def image():
     return jsonify(full="/static/temp_img/full.png", spectrum="/static/temp_img/Spectrum.png")
@@ -62,24 +78,19 @@ def image():
 @app.route('/status')
 def get_text():
     with open('static/status.txt', 'r') as f:
-        status = f.read()
-    return jsonify({'status': status})
+        status_ = f.read()
+    return jsonify({'status': status_})
 
 
-# Endpoint for updating the content
-@app.route('/update', methods=['POST'])
-def update_content():
-    # Here you would implement the logic to update the content
-    # For example, fetch the latest instruction or status.txt
-    # And generate or fetch new image paths
-    return jsonify(instruction="New Instructions",
-                   status="New Status",
-                   pic1="path_to_new_pic1.jpg",
-                   pic2="/static/temp_img/full.png")
+@app.route('/shutdown', methods=['POST'])
+def shutdown():
+    os.kill(os.getpid(), signal.SIGINT)
+    return 'Server shutting down...'
+    sys.exit()
 
 
 if __name__ == '__main__':
     write_txt('press start to begin')
     webbrowser.open('http://127.0.0.1:5000/')
-    time.sleep(1)
+    time.sleep(0.5)
     app.run(debug=True)

@@ -13,7 +13,7 @@
 
 <body>
 
-    <form id="initialize" action="/initialize" method="post">
+    <form id="measure" action="/measure" method="post">
         <div>
             <label for="standard">standard:</label>
             <input type="text" id="standard" name="standard" value="{{ standard | default('soundFile/noise.wav') }}">
@@ -40,6 +40,9 @@
             <img id="pic2" src="/static/cover.png " alt="Pic 2">
         </div>
     </div>
+    <br>
+    <a href="/"><h2>home</h2></a>
+    <button onclick="shutdownServer()">Close Service</button>
 
 </body>
 </html>

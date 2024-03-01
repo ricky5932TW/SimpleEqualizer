@@ -10,3 +10,8 @@ class Measurement_mission:
             SimpleEqualizer.analyze_with_optimize(lowerBound=int(lower_bound), fileName=filePATH, playFile=standard)
 
         SimpleEqualizer.white_noise_test()
+
+    @staticmethod
+    def Measurement_limited(band):
+        SimpleEqualizer.instructor(points=band)
+        SimpleEqualizer.white_noise_test()

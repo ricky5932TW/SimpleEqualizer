@@ -2,19 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Full Interface</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/script.js"></script>
+
 </head>
+
+
 <body>
-    <div id="content">
-        <div id="instruction">Initial Instruction</div>
-        <div id="status">Initial Status</div>
-        <div id="images">
-            <img id="pic1" src="path_to_initial_pic1.jpg" alt="Pic 1">
-            <img id="pic2" src="path_to_initial_pic2.jpg" alt="Pic 2">
+    <script>
+        setInterval(updateImg_json_limited, 1000);
+    </script>
+    <form id="measure_limited" action="/measure_limited" method="post">
+        <div>
+            <label>band:</label>
+            <input type="text" id="band" name="band" value="{{ band | default('63 125 250 500 1000 2000 4000 8000 16000') }}">
+            <button type="submit">Start</button>
         </div>
-        <button onclick="updateContent()">Start</button>
+    </form>
+    <br>
+    <button onclick="updateImg_json_limited()">refresh Images</button>
+
+
+
+    <div id="content">
+        <div id="status">Initializing </div>
+        <div id="images">
+            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
+            <img id="pic2" src="/static/cover.png " alt="Pic 2">
+        </div>
     </div>
+    <br>
+    <a href="/"><h2>home</h2></a>
+    <button onclick="shutdownServer()">Close Service</button>
 </body>
 </html>
+
+
+<!-- run  updateContent as routine-->

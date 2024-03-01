@@ -64,7 +64,10 @@ class TuningInstructor():
         for freq in stdDiffGain:
             if stdDiffGain[freq] > 12:
                 stdDiffGain[freq] *= 0.5
-        print(stdDiffGain)
+
+        with open('instruction.txt', 'w') as f:
+            for freq in stdDiffGain:
+                f.write(f'{freq} Hz: {stdDiffGain[freq]} dB\n')
 
     def savePlot(self, fileName='../../temp_img/separated_spectrum.png'):
         plt.plot(self.criticalFreqs, self.gains, label='responce')

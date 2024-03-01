@@ -2,7 +2,6 @@ import os
 import signal
 import sys
 import time
-import threading
 import multiprocessing
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import webbrowser
@@ -21,6 +20,8 @@ status = {"status": "press start to begin"}
 
 @app.route('/')
 def index():
+    write_txt('press start to begin')
+    write_txt(filename='instruction.txt', data=' ')
     return render_template('index.html')
 
 
@@ -41,13 +42,12 @@ def measure():
     filePATH = request.form['filePATH']
     optimize = request.form['optimize']
 
-    t1 = threading.Thread(target=Measurement_mission.Measurement, args=(standard, lower_bound, filePATH, optimize))
+    write_txt('Analyzing ...')
+    t1 = multiprocessing.Process(target=Measurement_mission.Measurement, args=(standard, lower_bound, filePATH, optimize))
     t1.start()
+    t1.join()
+    write_txt('Analysis complete')
 
-    print(standard, type(standard))
-    print(lower_bound, type(lower_bound))
-    print(filePATH, type(filePATH))
-    print(optimize, type(optimize))
 
     # print datatype
 
@@ -60,14 +60,19 @@ def measure_limited():
     band_raw = request.form['band']
     band = band_raw.split()
     # turn string to int
+    print(band, type(band))
     band = list(map(int, band))
 
-    t1 = threading.Thread(target=Measurement_mission.Measurement_limited, args=band)
-    t1.start()
+
+    t2 = multiprocessing.Process(target=Measurement_mission.Measurement_limited, args=(band,))
+    t2.start()
+    t2.join()
+    write_txt('Analysis complete')
+
 
     # print datatype
 
-    return render_template('limited.html', band=band)
+    return render_template('limited.html', band=band_raw)
 
 
 @app.route('/img')
@@ -75,11 +80,23 @@ def image():
     return jsonify(full="/static/temp_img/full.png", spectrum="/static/temp_img/Spectrum.png")
 
 
+@app.route('/img_limited')
+def image_limited():
+    return jsonify(full="/static/temp_img/Spectrum.png")
+
+
 @app.route('/status')
 def get_text():
     with open('static/status.txt', 'r') as f:
         status_ = f.read()
     return jsonify({'status': status_})
+
+
+@app.route('/instruction')
+def get_instruction():
+    with open('instruction.txt', 'r') as f:
+        instruction_ = f.read()
+    return jsonify({'instruction': instruction_})
 
 
 @app.route('/shutdown', methods=['POST'])
@@ -91,6 +108,8 @@ def shutdown():
 
 if __name__ == '__main__':
     write_txt('press start to begin')
+    write_txt(filename='instruction.txt', data=' ')
+
     webbrowser.open('http://127.0.0.1:5000/')
     time.sleep(0.5)
     app.run(debug=True)

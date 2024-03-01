@@ -48,12 +48,15 @@ class SimpleEqualizer:
                    playFile='soundFile/whiteNoise.wav',
                    separateDataFileName='data/separateData.csv',
                    gainFileName='data/1000HzGain.txt',
+                   output_filename='static/temp_img/separated_spectrum.png',
                    *args, **kwargs):
+        write_txt('Analyzing with optimization ...')
         eqSYS2 = SoundAnalyzer()
         eqSYS2.lowerBound = 0
         eqSYS2.points = points
         eqSYS2.recordingName = recordingName
         eqSYS2.playFile = playFile
+        write_txt('Playing and recording ...')
         eqSYS2.playandRecord()
         eqSYS2.fft(recordingName, smooth=True)
         eqSYS2.saveSeparateData(fileName=separateDataFileName, optimize=0)
@@ -62,7 +65,8 @@ class SimpleEqualizer:
         instructor0.loadAverageGain()
         instructor0.loadCSV()
         instructor0.printInstruction(vocal_enhance=True)
-        instructor0.savePlot()
+
+        #instructor0.savePlot(fileName=output_filename)
 
     @staticmethod
     def white_noise_test(recordingName='soundFile/record.wav',
@@ -74,6 +78,7 @@ class SimpleEqualizer:
             eqSYS3.lowerBound = kwargs['lowerBound']
         eqSYS3.recordingName = recordingName
         eqSYS3.playFile = playFile
+        write_txt('Playing and recording ...')
         eqSYS3.playandRecord()
         eqSYS3.fft('soundFile/record.wav', save_fig=True, smooth=True, fig_name=fig_name,
                    output_filename=output_filename)

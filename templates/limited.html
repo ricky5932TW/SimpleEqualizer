@@ -14,7 +14,9 @@
 
 <body>
     <script>
-        setInterval(updateImg_json_limited, 1000);
+        setInterval(updateStatus, 100);
+        setInterval(update_json_limited, 2000);
+        setInterval(updateInstruction, 2000);
     </script>
     <form id="measure_limited" action="/measure_limited" method="post">
         <div>
@@ -31,10 +33,11 @@
     <div id="content">
         <div id="status">Initializing </div>
         <div id="images">
-            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
-            <img id="pic2" src="/static/cover.png " alt="Pic 2">
+            <img id="pic3" src="/static/cover.png " alt="Pic 3" >
         </div>
+        <div id="instruction"></div>
     </div>
+
     <br>
     <a href="/"><h2>home</h2></a>
     <button onclick="shutdownServer()">Close Service</button>

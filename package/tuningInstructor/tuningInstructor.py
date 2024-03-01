@@ -31,6 +31,7 @@ class TuningInstructor():
         print(data)
         print(self.criticalFreqs)
         print(self.gains)
+        '''
         plt.plot(self.criticalFreqs, self.gains, label='responce')
         plt.plot((0, 20000), (self.averageGain, self.averageGain), '--', label='average(target)')
         plt.xscale('log')
@@ -38,9 +39,10 @@ class TuningInstructor():
         plt.title('Spectrum')
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Gain (dB)')
-        plt.savefig('spectrum.png')
+        plt.savefig('separated_spectrum.png')
         plt.legend()
-        plt.show()
+        plt.close()
+        '''
 
     def printInstruction(self,vocal_enhance=False):
         """finding how to tune the gain compared to 1000 Hz"""

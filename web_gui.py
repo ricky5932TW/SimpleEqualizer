@@ -109,6 +109,13 @@ def shutdown():
 if __name__ == '__main__':
     write_txt('press start to begin')
     write_txt(filename='instruction.txt', data=' ')
+    # remove old temp_img
+    try:
+        os.remove('static/temp_img/full.png')
+        os.remove('static/temp_img/Spectrum.png')
+        os.remove('static/temp_img/separated_spectrum.png')
+    except:
+        pass
 
     webbrowser.open('http://127.0.0.1:5000/')
     time.sleep(0.5)

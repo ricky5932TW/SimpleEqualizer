@@ -14,7 +14,7 @@
 <body>
     <script>
         setInterval(updateStatus, 1000);
-        setInterval(updateImg_json, 2000);
+
     </script>
 
     <form id="measure" action="/measure" method="post">
@@ -30,7 +30,7 @@
             <br>
             <label>optimize( 0 / 1 ):</label>
             <input type="text" id="optimize" name="optimize" value="{{ optimize | default('0') }}">
-            <button type="submit">Start</button>
+            <button type="submit" onclick="setInterval(updateImg_json, 2000)">Start</button>
         </div>
     </form>
     <button onclick="updateImg_json()">refresh Images</button>

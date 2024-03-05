@@ -1,0 +1,74 @@
+@startuml
+
+' Declare the SimpleEqualizer class
+class SimpleEqualizer {
+    + analyze without optimize(lowerBound: int, recordingName: str, playFile: str, fileName: str, fig_name: str, output_filename: str, *args, **kwargs): void
+    + analyze with optimize(lowerBound: int, recordingName: str, playFile: str, fileName: str, fig_name: str, output_filename: str, *args, **kwargs): void
+    + instructor(points: np.array, recordingName: str, playFile: str, separateDataFileName: str, gainFileName: str, output_filename: str, *args, **kwargs): void
+    + white noise test(recordingName: str, playFile: str, fig_name: str, output_filename: str, *args, **kwargs): void
+}
+
+
+
+' Declare the SoundAnalyzer class
+class SoundAnalyzer {
+    - lowerBound : int
+    - recordingName : str
+    - playFile : str
+    - points : np.array
+    + playandRecord(): void
+    + fft(recordingName: str, smooth: bool, fig_name: str, output_filename: str, save_fig: bool): void
+    + saveRawData(fileName: str, optimize: bool): void
+    + saveSeparateData(fileName: str, optimize: int): void
+    + save1000HzGain(fileName: str): void
+}
+
+' Declare the TuningInstructor class
+class TuningInstructor {
+    - separateDataFileName : str
+    - gainFileName : str
+    + loadAverageGain(): void
+    + loadCSV(): void
+    + printInstruction(vocal_enhance: bool): void
+}
+
+' Declare the FlaskApp class
+class FlaskApp {
+    - app: Flask
+    - status: dictionary
+    + route(): void
+    + run(): void
+}
+
+' Declare the Measurement_mission class
+class Measurement_mission {
+    + Measurement(standard: str, lower_bound: int, filePath: str, optimize: str): void
+    + Measurement_limited(band: np.array): void
+}
+
+' Declare the Measurement class
+class Measurement {
+    - standard: str
+    - lower_bound: str
+    - filePath: str
+    - optimize: str
+}
+
+' Declare the Measurement_limited class
+class Measurement_limited {
+    - band: list
+}
+
+' Relationships
+SimpleEqualizer ..> SoundAnalyzer : << uses >>
+SimpleEqualizer ..> TuningInstructor : << uses >>
+Measurement_mission ..> SimpleEqualizer : << uses >>
+
+FlaskApp ..> Measurement_mission : << uses >>
+FlaskApp ..> CWebBrowser : << invokes >>
+FlaskApp ..> OS : << launches >>
+
+Measurement_mission ..|> Measurement : << includes >>
+Measurement_mission ..|> Measurement_limited : << includes >>
+
+@enduml

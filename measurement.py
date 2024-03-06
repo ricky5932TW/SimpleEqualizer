@@ -15,3 +15,7 @@ class Measurement_mission:
     def Measurement_limited(band):
         SimpleEqualizer.instructor(points=band)
         SimpleEqualizer.white_noise_test()
+
+    @staticmethod
+    def white_noise_test():
+        SimpleEqualizer.white_noise_test()

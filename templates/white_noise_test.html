@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>white noise test</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+
+
+<body>
+    <script>
+        setInterval(updateStatus, 1000);
+        setInterval(updateImg_json, 2000);
+    </script>
+
+    <form id="white_noise_test", action="/white_noise_test", method="post">
+        <div>
+            <button type="submit">Start</button>
+        </div>
+    </form>
+    <br>
+    <button onclick="updateImg_json()">refresh Images</button>
+    <br>
+    <div id="content">
+        <div id="status">Initializing </div>
+        <div id="images">
+            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
+        </div>
+    </div>
+    <br>
+    <a href="/"><h2>home</h2></a>
+    <button onclick="shutdownServer()">Close Service</button>
+
+</body>
+</html>
+
+
+<!-- run  updateContent as routine-->

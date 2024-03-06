@@ -35,6 +35,11 @@ def limited():
     return render_template('limited.html')
 
 
+@app.route('/white_noise')
+def white_noise():
+    return render_template('white_noise_test.html')
+
+
 @app.route('/measure', methods=['POST'])
 def measure():
     standard = request.form['standard']
@@ -43,11 +48,11 @@ def measure():
     optimize = request.form['optimize']
 
     write_txt('Analyzing ...')
-    t1 = multiprocessing.Process(target=Measurement_mission.Measurement, args=(standard, lower_bound, filePATH, optimize))
+    t1 = multiprocessing.Process(target=Measurement_mission.Measurement,
+                                 args=(standard, lower_bound, filePATH, optimize))
     t1.start()
     t1.join()
     write_txt('Analysis complete')
-
 
     # print datatype
 
@@ -63,16 +68,23 @@ def measure_limited():
     print(band, type(band))
     band = list(map(int, band))
 
-
     t2 = multiprocessing.Process(target=Measurement_mission.Measurement_limited, args=(band,))
     t2.start()
     t2.join()
     write_txt('Analysis complete')
 
-
     # print datatype
 
     return render_template('limited.html', band=band_raw)
+
+
+@app.route('/white_noise_test', methods=['POST'])
+def white_noise_test():
+    t3 = multiprocessing.Process(target=Measurement_mission.white_noise_test)
+    t3.start()
+    t3.join()
+    write_txt('Analysis complete')
+    return render_template('white_noise_test.html')
 
 
 @app.route('/img')
@@ -112,11 +124,17 @@ if __name__ == '__main__':
     # remove old temp_img
     try:
         os.remove('static/temp_img/full.png')
+    except:
+        pass
+    try:
         os.remove('static/temp_img/Spectrum.png')
+    except:
+        pass
+    try:
         os.remove('static/temp_img/separated_spectrum.png')
     except:
         pass
 
     webbrowser.open('http://127.0.0.1:5000/')
-    time.sleep(0.5)
+    time.sleep(0.2)
     app.run(debug=True)

@@ -80,7 +80,7 @@ def measure_limited():
 
 @app.route('/white_noise_test', methods=['POST'])
 def white_noise_test():
-    t3 = multiprocessing.Process(target=Measurement_mission.white_noise_test)
+    t3 = multiprocessing.Process(target=Measurement_mission.whiteNoiseTest)
     t3.start()
     t3.join()
     write_txt('Analysis complete')

@@ -1,0 +1,73 @@
+@startuml
+scale 10
+
+
+' Declare the SimpleEqualizer class
+class SimpleEqualizer {
+    + analyze without optimize(lowerBound: int, recordingName: str, playFile: str, fileName: str, fig_name: str, output_filename: str, *args, **kwargs): void
+    + analyze with optimize(lowerBound: int, recordingName: str, playFile: str, fileName: str, fig_name: str, output_filename: str, *args, **kwargs): void
+    + instructor(points: np.array, recordingName: str, playFile: str, separateDataFileName: str, gainFileName: str, output_filename: str, *args, **kwargs): void
+    + white noise test(recordingName: str, playFile: str, fig_name: str, output_filename: str, *args, **kwargs): void
+}
+
+
+
+' Declare the SoundAnalyzer class
+class SoundAnalyzer {
+
+}
+
+' Declare the TuningInstructor class
+class TuningInstructor {
+
+}
+class FlaskApp {
+
+}
+
+
+
+FlaskApp --> Measurement_mission: << uses >>
+
+note right of FlaskApp
+  Main Flask application handling
+  web routes and multiprocessing
+  tasks for measurements.
+end note
+
+note right of Measurement_mission
+  External class responsible for
+  conducting measurements and analysis.
+end note
+
+
+
+' Declare the Measurement_mission class
+class Measurement_mission {
+  {static} +Measurement(standard: String, lower_bound: int, filePATH: String, optimize: String)
+  {static} +Measurement_limited(band: int)
+  {static} +whiteNoiseTest()
+}
+
+
+
+' Relationships
+SimpleEqualizer ..> SoundAnalyzer : << uses >>
+SimpleEqualizer ..> TuningInstructor : << uses >>
+Measurement_mission ..> SimpleEqualizer : << uses >>
+
+
+
+SoundAnalyzer -->  PyAudio : << uses >>
+SoundAnalyzer -->  pygame : << uses>>
+SoundAnalyzer -->  pandas : << uses >>
+SoundAnalyzer -->  numpy : << uses >>
+SoundAnalyzer -->  matplotlib : << uses >>
+
+
+TuningInstructor -->  pandas : << uses >>
+TuningInstructor -->  numpy : << uses >>
+TuningInstructor -->  matplotlib : << uses >>
+
+
+@enduml

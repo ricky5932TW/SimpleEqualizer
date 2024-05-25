@@ -4,53 +4,6 @@ import numpy as np
 import scipy
 from scipy.io import wavfile
 
-'''
-# Define Harman curve frequency response
-f = np.array([20, 40, 210, 1000, 3000, 9000, 20000])
-h = np.array([ 4,  4,  -3,    0,   10,    1,   -20])
-
-
-
-# Generate random noise signa
-duration = 5 # 5 seconds of noise
-fs = 44100 # 44100 Hz sampling rate
-samples = int(fs * duration)
-noise = np.random.randn(samples)
-
-# Interpolate Harman curve frequency response
-freqs = np.fft.fftfreq(samples, d=1/fs)
-interp_h = np.interp(np.log10(freqs[freqs > 0]), np.log10(f), h)
-harman_response = np.zeros(samples)
-harman_response[freqs > 0] = 10**(interp_h/20) # convert dB to linear scale
-harman_response[0] = 0 # avoid DC component gain
-
-# Apply Harman curve frequency response to noise signal PSD
-noise_psd = np.abs(np.fft.fft(noise))**2 / samples
-harman_psd = noise_psd * harman_response**2
-
-# Apply inverse FFT to obtain Harman curve noise signal
-noise_harman = np.real(np.fft.ifft(np.sqrt(harman_psd) * np.exp(1j*np.angle(np.fft.fft(noise)))))
-
-# Save Harman curve noise signal as WAV file
-scaled = np.int16(noise_harman/np.max(np.abs(noise_harman)) * 32767)
-wavfile.write('harman_noise.wav', fs, scaled)
-
-# Plot the resulting noise signal and its spectrum
-fig, (ax1, ax2) = plt.subplots(2, 1)
-ax1.plot(np.linspace(0, duration, samples), noise_harman)
-ax1.set_xlabel('Time (s)')
-ax1.set_ylabel('Amplitude')
-ax2.semilogx(freqs[freqs > 0], 10*np.log10(harman_psd[freqs > 0]))
-ax2.set_xlabel('Frequency (Hz)')
-ax2.set_ylabel('Power (dB)')
-# grid
-ax1.grid()
-ax2.grid()
-ax2.set_xlim([20, 20000])
-ax2.set_ylim([-15, 20])
-plt.show()
-'''
-
 
 # package it by class
 class NoiseGenerator:

@@ -1,4 +1,6 @@
 @startuml
+scale 10
+
 
 ' Declare the SimpleEqualizer class
 class SimpleEqualizer {
@@ -12,63 +14,130 @@ class SimpleEqualizer {
 
 ' Declare the SoundAnalyzer class
 class SoundAnalyzer {
-    - lowerBound : int
-    - recordingName : str
-    - playFile : str
-    - points : np.array
-    + playandRecord(): void
-    + fft(recordingName: str, smooth: bool, fig_name: str, output_filename: str, save_fig: bool): void
-    + saveRawData(fileName: str, optimize: bool): void
-    + saveSeparateData(fileName: str, optimize: int): void
-    + save1000HzGain(fileName: str): void
+    -gain1000: int
+    -lowerBound: int
+    -gainbias: int
+    -playFile: string
+    -oldCSVData: DataFrame
+    -csvFileName: string
+    -ana_frequency_10dB: array
+    -r_fft_10dB: array
+    -averageGain: float
+    -ana_gain: list
+    -ana_frequency: array
+    -r_fft: array
+    -recordingName: string
+    -__closeflag: boolean
+    -fftData: array
+    -points: list
+    -gainDiff: list
+    +playandRecord(): void
+    +play(): void
+    +record_audio(record_second=4): void
+    +fft(wave, plot=False, save_fig=False, fig_name='FFT of Signal', output_filename='fft.png', **kwargs): void
+    +saveSeparateData(fileName='separateData.csv', optimize=False): void
+    +save1000HzGain(fileName='1000HzGain.txt'): void
+    +saveRawData(fileName='rawData.csv', optimize=False, cutoff=0): void
 }
 
 ' Declare the TuningInstructor class
 class TuningInstructor {
-    - separateDataFileName : str
-    - gainFileName : str
-    + loadAverageGain(): void
-    + loadCSV(): void
-    + printInstruction(vocal_enhance: bool): void
+    - gainAndFreq : dict
+    - CSVFileName : string
+    - averageGainFile : string
+    - averageGain : float
+    - status : string
+    - criticalFreqs : array
+    - gains : array
+    - instruction : string
+
+    + __init__(filename=None, averageGainFile=None, *args, **kwargs) : void
+    + loadAverageGain() : void
+    + loadCSV() : void
+    + printInstruction(vocal_enhance=False) : void
+    + savePlot(fileName='../../temp_img/separated_spectrum.png') : void
+    + __checkInit() : void
 }
 
 ' Declare the FlaskApp class
-class FlaskApp {
-    - app: Flask
-    - status: dictionary
-    + route(): void
-    + run(): void
+class Flask {
+  + route(path: str): Function
+  + run(debug: bool): void
+}
+
+
+
+class WebBrowser {
+  + open(url: str): void
+}
+
+FlaskApp --> Flask: << uses >>
+FlaskApp --> Measurement_mission: << uses >>
+FlaskApp --> WebBrowser: << uses >>
+
+note right of FlaskApp
+  Main Flask application handling
+  web routes and multiprocessing
+  tasks for measurements.
+end note
+
+note right of Measurement_mission
+  External class responsible for
+  conducting measurements and analysis.
+end note
+
+class NoiseGenerator {
+  -cutoff_frequency: int
+  -duration: int
+  -sampleRate: int
+  -result: array
+  -sample: int
+  -noise: array
+  -f: array
+  -h: array
+  -name: string
+  +NoiseGenerator(name: string, duration: int, sampleRate: int, reverse: bool)
+  +freqAndGain(freq: array, gain: array): void
+  +interpolate(): void
+  +apply(): void
+  +generate(): void
+  +saveWav(): void
+  +plot(): void
+  +makingTESTNoise(): void
+  +makeWhiteNoise(): void
 }
 
 ' Declare the Measurement_mission class
 class Measurement_mission {
-    + Measurement(standard: str, lower_bound: int, filePath: str, optimize: str): void
-    + Measurement_limited(band: np.array): void
+  {static} +Measurement(standard: String, lower_bound: int, filePATH: String, optimize: String)
+  {static} +Measurement_limited(band: int)
+  {static} +whiteNoiseTest()
 }
 
-' Declare the Measurement class
-class Measurement {
-    - standard: str
-    - lower_bound: str
-    - filePath: str
-    - optimize: str
-}
 
-' Declare the Measurement_limited class
-class Measurement_limited {
-    - band: list
-}
 
 ' Relationships
 SimpleEqualizer ..> SoundAnalyzer : << uses >>
 SimpleEqualizer ..> TuningInstructor : << uses >>
 Measurement_mission ..> SimpleEqualizer : << uses >>
 
-FlaskApp ..> Measurement_mission : << uses >>
-FlaskApp ..> CWebBrowser : << invokes >>
-FlaskApp ..> OS : << launches >>
 
-Measurement_mission ..|> Measurement : << includes >>
-Measurement_mission ..|> Measurement_limited : << includes >>
+
+SoundAnalyzer -->  PyAudio : << uses >>
+SoundAnalyzer -->  pygame.mixer : << uses>>
+SoundAnalyzer -->  pandas.DataFrame : << uses >>
+SoundAnalyzer -->  numpy.array : << uses >>
+SoundAnalyzer -->  matplotlib.pyplot : << uses >>
+
+
+TuningInstructor -->  pandas.DataFrame : << uses >>
+TuningInstructor -->  numpy.array : << uses >>
+TuningInstructor -->  matplotlib.pyplot : << uses >>
+
+NoiseGenerator -->  numpy.array : << uses >>
+NoiseGenerator -->  scipy.signal : << uses >>>
+NoiseGenerator -->  scipy.io.wavfile : << uses >>
+NoiseGenerator -->  matplotlib.pyplot : << uses >>
+
 
 @enduml

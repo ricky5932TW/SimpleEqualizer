@@ -5,7 +5,7 @@ import time
 import multiprocessing
 from flask import Flask, render_template, jsonify, request, send_from_directory
 import webbrowser
-from measurement import Measurement_mission
+from measurement import MeasurementService
 
 
 def write_txt(data, filename='static/status.txt'):
@@ -48,7 +48,7 @@ def measure():
     optimize = request.form['optimize']
 
     write_txt('Analyzing ...')
-    t1 = multiprocessing.Process(target=Measurement_mission.Measurement,
+    t1 = multiprocessing.Process(target=MeasurementService.run_measurement,
                                  args=(standard, lower_bound, filePATH, optimize))
     t1.start()
     t1.join()
@@ -68,7 +68,7 @@ def measure_limited():
     print(band, type(band))
     band = list(map(int, band))
 
-    t2 = multiprocessing.Process(target=Measurement_mission.Measurement_limited, args=(band,))
+    t2 = multiprocessing.Process(target=MeasurementService.run_measurement_limited, args=(band,))
     t2.start()
     t2.join()
     write_txt('Analysis complete')
@@ -80,7 +80,7 @@ def measure_limited():
 
 @app.route('/white_noise_test', methods=['POST'])
 def white_noise_test():
-    t3 = multiprocessing.Process(target=Measurement_mission.whiteNoiseTest)
+    t3 = multiprocessing.Process(target=MeasurementService.white_noise_test)
     t3.start()
     t3.join()
     write_txt('Analysis complete')

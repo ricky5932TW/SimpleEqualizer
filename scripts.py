@@ -16,14 +16,14 @@ class SimpleEqualizer:
                                  fileName='data/rawData.csv', fig_name='difference',
                                  output_filename='static/temp_img/full.png', *args, **kwargs):
         write_txt('Analyzing without optimization ...')
-        eqSYS0 = SoundAnalyzer()
-        eqSYS0.lowerBound = lowerBound
-        eqSYS0.recordingName = recordingName
+        analyzer = SoundAnalyzer()
+        analyzer.lowerBound = lowerBound
+        analyzer.recordingName = recordingName
         write_txt('Playing and recording ...')
-        eqSYS0.playFile = playFile
-        eqSYS0.playandRecord()
-        eqSYS0.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
-        eqSYS0.saveRawData(fileName=fileName, optimize=False)
+        analyzer.playFile = playFile
+        analyzer.play_and_record()
+        analyzer.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
+        analyzer.saveRawData(fileName=fileName, optimize=False)
         write_txt('Analysis complete')
 
     @staticmethod
@@ -32,14 +32,14 @@ class SimpleEqualizer:
                               fileName='data/rawData.csv', fig_name='difference',
                               output_filename='static/temp_img/full.png', *args, **kwargs):
         write_txt('Analyzing with optimization ...')
-        eqSYS1 = SoundAnalyzer()
-        eqSYS1.lowerBound = lowerBound
-        eqSYS1.recordingName = recordingName
+        analyzer = SoundAnalyzer()
+        analyzer.lowerBound = lowerBound
+        analyzer.recordingName = recordingName
         write_txt('Playing and recording ...')
-        eqSYS1.playFile = playFile
-        eqSYS1.playandRecord()
-        eqSYS1.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
-        eqSYS1.saveRawData(fileName=fileName, optimize=True)
+        analyzer.playFile = playFile
+        analyzer.play_and_record()
+        analyzer.fft(recordingName, smooth=True, fig_name=fig_name, output_filename=output_filename, save_fig=True)
+        analyzer.saveRawData(fileName=fileName, optimize=True)
         write_txt('Analysis complete')
 
     @staticmethod
@@ -51,39 +51,39 @@ class SimpleEqualizer:
                    output_filename='static/temp_img/separated_spectrum.png',
                    *args, **kwargs):
         write_txt('Analyzing with optimization ...')
-        eqSYS2 = SoundAnalyzer()
-        eqSYS2.lowerBound = 0
-        eqSYS2.points = points
-        eqSYS2.recordingName = recordingName
-        eqSYS2.playFile = playFile
+        analyzer = SoundAnalyzer()
+        analyzer.lowerBound = 0
+        analyzer.points = points
+        analyzer.recordingName = recordingName
+        analyzer.playFile = playFile
         write_txt('Playing and recording ...')
-        eqSYS2.playandRecord()
-        eqSYS2.fft(recordingName, smooth=True)
-        eqSYS2.saveSeparateData(fileName=separateDataFileName, optimize=0)
-        eqSYS2.save1000HzGain(fileName=gainFileName)
-        instructor0 = TuningInstructor(separateDataFileName, gainFileName)
-        instructor0.loadAverageGain()
-        instructor0.loadCSV()
-        instructor0.printInstruction(vocal_enhance=True)
+        analyzer.play_and_record()
+        analyzer.fft(recordingName, smooth=True)
+        analyzer.saveSeparateData(fileName=separateDataFileName, optimize=0)
+        analyzer.save1000HzGain(fileName=gainFileName)
+        instructor = TuningInstructor(separateDataFileName, gainFileName)
+        instructor.loadAverageGain()
+        instructor.loadCSV()
+        instructor.printInstruction(vocal_enhance=True)
 
-        #instructor0.savePlot(fileName=output_filename)
+        #instructor.savePlot(fileName=output_filename)
 
     @staticmethod
     def white_noise_test(recordingName='soundFile/record.wav',
                          playFile='soundFile/whiteNoise.wav',
                          fig_name='Spectrum', output_filename='static/temp_img/Spectrum.png', *args,
                          **kwargs):
-        eqSYS3 = SoundAnalyzer()
+        analyzer = SoundAnalyzer()
         if 'lowerBound' in kwargs:
-            eqSYS3.lowerBound = kwargs['lowerBound']
-        eqSYS3.recordingName = recordingName
-        eqSYS3.playFile = playFile
+            analyzer.lowerBound = kwargs['lowerBound']
+        analyzer.recordingName = recordingName
+        analyzer.playFile = playFile
         write_txt('Playing and recording ...')
-        eqSYS3.playandRecord()
-        eqSYS3.fft('soundFile/record.wav', save_fig=True, smooth=True, fig_name=fig_name,
+        analyzer.play_and_record()
+        analyzer.fft('soundFile/record.wav', save_fig=True, smooth=True, fig_name=fig_name,
                    output_filename=output_filename)
         if 'save_raw' in kwargs:
             if kwargs['optimize']:
-                eqSYS3.saveRawData(fileName=kwargs['save_raw'], optimize=True)
+                analyzer.saveRawData(fileName=kwargs['save_raw'], optimize=True)
             else:
-                eqSYS3.saveRawData(fileName=kwargs['save_raw'], optimize=False)
+                analyzer.saveRawData(fileName=kwargs['save_raw'], optimize=False)

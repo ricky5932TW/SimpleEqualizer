@@ -45,9 +45,9 @@ class SoundAnalyzer():
         # self.points = [125, 250, 500, 1000, 2000, 4000, 8000, 16000]
         self.gainDiff = []
 
-    def playandRecord(self):
+    def play_and_record(self):
         '''play noise.wav and record the sound at the same time by multithreading'''
-        print('playandRecord start')
+        print('play_and_record start')
         # play noise.wav and record the sound at the same time by multiprocessing
         t_play = threading.Thread(target=self.play)  # play noise.wav
         t_record = threading.Thread(target=self.record_audio)  # record the sound
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     eqSYS_0.lowerBound = 150
     eqSYS_0.recordingName = 'soundFile/record.wav'
     eqSYS_0.playFile = 'sweep_signal.wav'
-    eqSYS_0.playandRecord()
+    eqSYS_0.play_and_record()
     eqSYS_0.fft('soundFile/record.wav', plot=1, smooth=True)
     eqSYS_0.saveRawData(fileName='data/rawData_3inches_sweep_ori.csv', optimize=1)
     # eqSYS_0.playFile = 'soundFile/noise10000Hz.wav'

@@ -1,42 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>white noise test</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
-</head>
+{% extends "base.html" %}
 
+{% block title %}White Noise - Simple Equalizer{% endblock %}
 
-<body>
-    <script>
-        setInterval(updateStatus, 500);
-        setInterval(updateImg_json, 1000);
-    </script>
-
-    <form id="white_noise_test", action="/white_noise_test", method="post">
+{% block content %}
+<section x-data="measurement({ imageUrl: '/img' })" x-init="start()" @beforeunload.window="stop()" class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <button type="submit">Start</button>
+            <p class="text-sm font-semibold uppercase tracking-normal text-teal-700">Spectrum check</p>
+            <h1 class="mt-1 text-3xl font-semibold tracking-normal text-zinc-950">White Noise Test</h1>
         </div>
-    </form>
-    <br>
-    <button onclick="updateImg_json()">refresh Images</button>
-    <br>
-    <div id="content">
-        <div id="status">Initializing </div>
-        <div id="images">
-            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
+        <div class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ring-1" :class="statusClass()">
+            <span class="h-2.5 w-2.5 rounded-full" :class="running ? 'animate-pulse bg-amber-500' : (/failed|error/i.test(status) ? 'bg-red-500' : 'bg-emerald-500')"></span>
+            <span id="status" x-text="status">Initializing</span>
         </div>
     </div>
-    <br>
-    <a href="/"><h2>home</h2></a>
-    <button onclick="shutdownServer()">Close Service</button>
 
-</body>
-</html>
+    <div class="grid gap-3 md:grid-cols-3">
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼作動</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">播放白噪音並錄音，將每次錄音轉成頻譜圖；多次量測會先平均 FFT 幅度。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼用</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">設定 averages 後按 Start。數值越高越穩，但每次都會多錄一輪聲音。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">原理</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">白噪音能覆蓋寬頻範圍；平均多次頻域結果可以淡化短暫噪音與錄音抖動。</p>
+        </section>
+    </div>
 
+    <form id="white_noise_test" action="/white_noise_test" method="post" @submit="markRunning()" class="grid gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:grid-cols-[minmax(0,240px)_auto] sm:items-end">
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Averages</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="number" min="1" max="20" id="repeat_count" name="repeat_count" value="{{ repeat_count | default('3') }}">
+        </label>
+        <div class="flex flex-wrap gap-3">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-teal-700 px-4 py-2 font-semibold text-white shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-300">
+                <span x-show="running" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" aria-hidden="true"></span>
+                Start
+            </button>
+            <button type="button" @click="refreshImages()" class="rounded-md border border-zinc-300 px-4 py-2 font-semibold text-zinc-700 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-300">Refresh Image</button>
+        </div>
+    </form>
 
-<!-- run  updateContent as routine-->
+    <figure id="images" class="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm">
+        <figcaption class="mb-2 text-sm font-semibold text-zinc-700">White-noise spectrum</figcaption>
+        <img id="pic1" class="aspect-video w-full rounded-md bg-zinc-100 object-contain" :src="images.spectrum || '/static/cover.PNG'" alt="White-noise spectrum">
+    </figure>
+</section>
+{% endblock %}

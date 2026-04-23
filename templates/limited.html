@@ -1,48 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Limited Interface</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
+{% extends "base.html" %}
 
-</head>
+{% block title %}Limited Band - Simple Equalizer{% endblock %}
 
-
-<body>
-    <script>
-        setInterval(updateStatus, 500);
-        setInterval(update_json_limited, 1000);
-        setInterval(updateInstruction, 1000);
-    </script>
-    <form id="measure_limited" action="/measure_limited" method="post">
+{% block content %}
+<section x-data="measurement({ imageUrl: '/img_limited', instructionUrl: '/instruction' })" x-init="start()" @beforeunload.window="stop()" class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <label>band:</label>
-            <input type="text" id="band" name="band" value="{{ band | default('63 125 250 500 1000 2000 4000 8000 16000') }}">
-            <button type="submit">Start</button>
+            <p class="text-sm font-semibold uppercase tracking-normal text-teal-700">Selected bands</p>
+            <h1 class="mt-1 text-3xl font-semibold tracking-normal text-zinc-950">Limited Band Correction</h1>
         </div>
-    </form>
-    <br>
-    <button onclick="updateImg_json_limited()">refresh Images</button>
-
-
-
-    <div id="content">
-        <div id="status">Initializing </div>
-        <div id="images">
-            <img id="pic3" src="/static/cover.png " alt="Pic 3" >
+        <div class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ring-1" :class="statusClass()">
+            <span class="h-2.5 w-2.5 rounded-full" :class="running ? 'animate-pulse bg-amber-500' : (/failed|error/i.test(status) ? 'bg-red-500' : 'bg-emerald-500')"></span>
+            <span id="status" x-text="status">Initializing</span>
         </div>
-        <div id="instruction"></div>
     </div>
 
-    <br>
-    <a href="/"><h2>home</h2></a>
-    <button onclick="shutdownServer()">Close Service</button>
-</body>
-</html>
+    <div class="grid gap-3 md:grid-cols-3">
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼作動</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">針對輸入的 EQ 頻點錄音分析；多次量測時會先平均 FFT，再讀取各頻點附近能量。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼用</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">用空白分隔頻點，例如 63 125 250；設定 averages 後開始，右側會列出每一段建議增益。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">原理</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">以 1 kHz 或平均增益作參考，計算每個頻點需要補償的 dB；平均能讓建議比較穩。</p>
+        </section>
+    </div>
 
+    <form id="measure_limited" action="/measure_limited" method="post" @submit="markRunning()" class="grid gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Bands</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="text" id="band" name="band" value="{{ band | default('63 125 250 500 1000 2000 4000 8000 16000') }}">
+        </label>
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Averages</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="number" min="1" max="20" id="repeat_count" name="repeat_count" value="{{ repeat_count | default('3') }}">
+        </label>
+        <div class="flex flex-wrap gap-3">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-teal-700 px-4 py-2 font-semibold text-white shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-300">
+                <span x-show="running" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" aria-hidden="true"></span>
+                Start
+            </button>
+            <button type="button" @click="refreshImages()" class="rounded-md border border-zinc-300 px-4 py-2 font-semibold text-zinc-700 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-300">Refresh Image</button>
+        </div>
+    </form>
 
-<!-- run  updateContent as routine-->
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <figure class="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm">
+            <figcaption class="mb-2 text-sm font-semibold text-zinc-700">Spectrum</figcaption>
+            <img id="pic3" class="aspect-video w-full rounded-md bg-zinc-100 object-contain" :src="images.full || '/static/cover.PNG'" alt="Limited-band spectrum">
+        </figure>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-700">Instructions</h2>
+            <pre id="instruction" class="mt-3 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-zinc-950 p-3 text-sm leading-6 text-zinc-50" x-text="instruction"></pre>
+        </section>
+    </div>
+</section>
+{% endblock %}

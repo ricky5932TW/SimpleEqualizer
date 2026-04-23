@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas
+from runtime_state import write_instruction
 
 
 class TuningInstructor():
@@ -67,9 +68,8 @@ class TuningInstructor():
             if stdDiffGain[freq] > 12:
                 stdDiffGain[freq] *= 0.5
 
-        with open('instruction.txt', 'w') as f:
-            for freq in stdDiffGain:
-                f.write(f'{freq} Hz: {stdDiffGain[freq]} dB\n')
+        lines = [f'{freq} Hz: {stdDiffGain[freq]} dB' for freq in stdDiffGain]
+        write_instruction('\n'.join(lines) + '\n')
 
     def savePlot(self, fileName='../../temp_img/separated_spectrum.png'):
         plt.plot(self.criticalFreqs, self.gains, label='responce')

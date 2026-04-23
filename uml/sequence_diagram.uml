@@ -1,0 +1,121 @@
+@startuml sequence_diagram
+title SimpleEqualizer — 量測流程時序圖（含計畫 1 時序修正與計畫 3 DB 寫入）
+
+actor User
+participant "Browser\n(Alpine.js + Tailwind)" as Browser
+participant "Flask\n(web_gui.py)" as Flask
+participant "MeasurementService\n(measurement.py)" as Service
+participant "SimpleEqualizer\n(scripts.py)" as Core
+participant "SoundAnalyzer" as Analyzer
+participant "TuningInstructor" as Instructor
+participant "History\n(package/history)" as History
+database "MySQL\n(optional)" as DB
+participant "Filesystem\n(status.txt, *.png, *.csv)" as FS
+
+== 啟動量測 (full flow) ==
+
+User -> Browser : 點擊 Start
+Browser -> Flask : POST /measure (form data)
+
+activate Flask
+Flask -> FS : 清理 temp_img/*.png, instruction.txt\n(計畫 1)
+Flask -> History : record_start("full", params)
+activate History
+History -> DB : INSERT INTO measurements (started_at, run_type, ...)
+DB --> History : run_id
+History --> Flask : run_id\n(DB 離線時回傳 None)
+deactivate History
+
+Flask -> FS : atomic write status.txt\n"Starting (run #N)"\n(計畫 1：寫 .tmp → os.replace)
+Flask -> Service : spawn Process(run_measurement)
+activate Service
+
+== 背景量測（子程序） ==
+
+Service -> Core : analyze_without_optimize(...)
+activate Core
+Core -> FS : atomic write "Playing and recording..."
+Core -> Analyzer : play_and_record()
+activate Analyzer
+Analyzer -> FS : soundFile/record.wav
+deactivate Analyzer
+Core -> Analyzer : fft(...)
+activate Analyzer
+Analyzer -> FS : temp_img/full.png
+deactivate Analyzer
+Core -> Analyzer : saveRawData(...)
+activate Analyzer
+Analyzer -> FS : data/rawData.csv
+deactivate Analyzer
+Core -> FS : atomic write "Analyzing frequency response..."
+deactivate Core
+
+Service -> Core : white_noise_test(...)
+activate Core
+Core -> FS : atomic write "White noise verification..."
+Core -> Analyzer : play_and_record() / fft(...)
+activate Analyzer
+Analyzer -> FS : temp_img/Spectrum.png
+deactivate Analyzer
+deactivate Core
+
+Service -> FS : atomic write "Analysis complete (run #N)"\n(計畫 1：單調推進，不再出現\ncomplete → playing 的倒退)
+Service -> History : record_finish(run_id, "ok", image_paths)
+activate History
+History -> DB : UPDATE measurements SET finished_at, status, image_paths
+deactivate History
+deactivate Service
+
+== 並行 Polling（前端每 500ms / 1000ms） ==
+
+loop 量測進行中
+    Browser -> Flask : GET /status
+    Flask -> FS : read status.txt
+    FS --> Flask : text (+ run_id)
+    Flask --> Browser : { status, run_id }
+    note right of Browser
+      Alpine 元件比對 run_id
+      舊 run 的回應丟棄 (計畫 1)
+    end note
+
+    Browser -> Flask : GET /img
+    Flask --> Browser : { full, spectrum, run_id }
+    alt run_id 匹配
+        Browser -> Flask : GET /static/temp_img/full.png?t=...
+        Flask --> Browser : PNG
+    else run_id 不匹配
+        Browser -> Browser : 丟棄，等下輪
+    end
+end
+
+== 回應 ==
+
+Flask --> Browser : render full.html (form echo)
+deactivate Flask
+Browser -> User : 顯示最終結果圖 + "Analysis complete"
+
+== 查詢歷史（/history 頁） ==
+
+User -> Browser : 點擊 History
+Browser -> Flask : GET /history
+activate Flask
+Flask -> History : list_recent(20)
+activate History
+alt DB 可用
+    History -> DB : SELECT ... ORDER BY started_at DESC LIMIT 20
+    DB --> History : rows
+    History --> Flask : rows
+else DB 離線
+    History --> Flask : []\n(靜默降級)
+end
+deactivate History
+Flask -> Browser : render history.html
+deactivate Flask
+
+alt rows 非空
+    Browser -> User : 顯示 20 筆紀錄表格
+else rows 為空
+    Browser -> User : 顯示「資料庫未啟用 / 尚無紀錄」
+end
+
+@enduml

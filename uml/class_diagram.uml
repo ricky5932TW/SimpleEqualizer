@@ -1,0 +1,144 @@
+@startuml class_diagram
+title SimpleEqualizer — 類別關係圖（含計畫 3 新增的 History）
+
+note as N1
+  說明：本專案類別間為「組合/使用」關係，
+  非嚴格的繼承。此圖呈現結構責任劃分。
+  虛線箭頭 (..>) = uses；實線箭頭 (-->) = composition/association。
+end note
+
+package "Presentation (Flask)" {
+    class FlaskApp <<module: web_gui.py>> {
+        + route(path)
+        + run(debug)
+        + index()
+        + full() / limited() / white_noise()
+        + measure() / measure_limited() / white_noise_test()
+        + image() / image_limited()
+        + status() / instruction()
+        + history()  <<新增>>
+        + shutdown()
+    }
+}
+
+package "Service Layer" {
+    class MeasurementService <<static>> {
+        {static} + run_measurement(standard, lower_bound, filePATH, optimize)
+        {static} + run_measurement_limited(band)
+        {static} + white_noise_test()
+    }
+}
+
+package "Core Facade" {
+    class SimpleEqualizer <<static>> {
+        {static} + analyze_without_optimize(...)
+        {static} + analyze_with_optimize(...)
+        {static} + instructor(points, ...)
+        {static} + white_noise_test(...)
+    }
+}
+
+package "Core Packages" {
+    class SoundAnalyzer {
+        - lowerBound : int
+        - playFile : str
+        - recordingName : str
+        - fftData : array
+        - points : list
+        - averageGain : float
+        + play_and_record()
+        + play() / record_audio()
+        + fft(wave, ...)
+        + saveRawData(fileName, optimize)
+        + saveSeparateData(fileName, optimize)
+        + save1000HzGain(fileName)
+    }
+
+    class TuningInstructor {
+        - gainAndFreq : dict
+        - CSVFileName : str
+        - averageGainFile : str
+        - averageGain : float
+        - instruction : str
+        + __init__(filename, averageGainFile)
+        + loadAverageGain()
+        + loadCSV()
+        + printInstruction(vocal_enhance)
+        + savePlot(fileName)
+    }
+
+    class NoiseGenerator {
+        - name : str
+        - duration : int
+        - sampleRate : int
+        - noise : array
+        + freqAndGain(freq, gain)
+        + interpolate() / apply() / generate()
+        + saveWav() / plot()
+        + makingTESTNoise() / makeWhiteNoise()
+    }
+
+    class SweepSignalGenerator {
+        + generate()
+        + saveWav()
+    }
+}
+
+package "History (計畫 3 新增，optional sink)" {
+    class History <<static>> {
+        {static} + record_start(run_type, params) : int | None
+        {static} + record_finish(run_id, status, image_paths, note)
+        {static} + list_recent(limit=20) : list[dict]
+        - _connect() : Connection | None
+        - _is_enabled() : bool
+    }
+
+    note right of History
+      非關鍵組件：
+      · env var 缺失或連線失敗時所有方法變 no-op
+      · 量測流程永不因 DB 失敗而中斷
+      · 直接使用 PyMySQL cursor，無 ORM
+    end note
+}
+
+package "External Libraries" {
+    class Flask
+    class WebBrowser
+    class PyAudio
+    class "pygame.mixer" as pygame
+    class "pandas.DataFrame" as pandas
+    class "numpy.array" as numpy
+    class "matplotlib.pyplot" as matplotlib
+    class "scipy.signal" as scipy
+    class PyMySQL <<新增>>
+}
+
+' --- Relationships ---
+FlaskApp ..> Flask : uses
+FlaskApp ..> WebBrowser : uses
+FlaskApp ..> MeasurementService : uses
+FlaskApp ..> History : reads (/history route)
+
+MeasurementService ..> SimpleEqualizer : uses
+MeasurementService ..> History : record_start / record_finish
+
+SimpleEqualizer ..> SoundAnalyzer : uses
+SimpleEqualizer ..> TuningInstructor : uses
+
+SoundAnalyzer ..> PyAudio : uses
+SoundAnalyzer ..> pygame : uses
+SoundAnalyzer ..> pandas : uses
+SoundAnalyzer ..> numpy : uses
+SoundAnalyzer ..> matplotlib : uses
+
+TuningInstructor ..> pandas : uses
+TuningInstructor ..> numpy : uses
+TuningInstructor ..> matplotlib : uses
+
+NoiseGenerator ..> numpy : uses
+NoiseGenerator ..> scipy : uses
+NoiseGenerator ..> matplotlib : uses
+
+History ..> PyMySQL : uses (optional)
+
+@enduml

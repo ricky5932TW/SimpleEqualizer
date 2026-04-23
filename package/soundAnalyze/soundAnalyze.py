@@ -118,11 +118,21 @@ class SoundAnalyzer():
         self.ana_frequency = np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate * 2)  # get the frequency
         """frameRate from source at "np.fft.rfftfreq(len(self.r_fft), d=1.0 / framerate)"should double it when it is 
         384000Hz, quad when it is 762000Hz. I don't know why"""
+        if plot or save_fig:
+            self.render_fft_plot(
+                plot=plot,
+                save_fig=save_fig,
+                fig_name=fig_name,
+                output_filename=output_filename,
+                smooth=kwargs.get('smooth', False),
+            )
+
+    def render_fft_plot(self, plot=False, save_fig=False, fig_name='FFT of Signal',
+                        output_filename='fft.png', smooth=False):
         x = self.ana_frequency[:int(len(self.ana_frequency) / 4)]
-        y = 20 * np.log10(self.r_fft[:int(len(self.ana_frequency) / 4)])
-        if 'smooth' in kwargs:
-            if kwargs['smooth']:
-                y = signal.savgol_filter(y, 273, 2)
+        y = 20 * np.log10(np.maximum(self.r_fft[:int(len(self.ana_frequency) / 4)], np.finfo(float).tiny))
+        if smooth:
+            y = signal.savgol_filter(y, 273, 2)
 
         plt.plot(x, y)
         if plot:  # plot the result

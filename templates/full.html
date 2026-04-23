@@ -1,55 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Full Interface</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
-</head>
+{% extends "base.html" %}
 
+{% block title %}Correction - Simple Equalizer{% endblock %}
 
-<body>
-    <script>
-        setInterval(updateStatus, 500);
-        setInterval(updateImg_json, 1000);
-    </script>
-
-    <form id="measure" action="/measure" method="post">
+{% block content %}
+<section x-data="measurement({ imageUrl: '/img' })" x-init="start()" @beforeunload.window="stop()" class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <label for="standard">standard:</label>
-            <input type="text" id="standard" name="standard" value="{{ standard | default('soundFile/noise.wav') }}">
-            <br>
-            <label for="lower_bound">lower_bound:</label>
-            <input type="text" id="lower_bound" name="lower_bound" value="{{ lower_bound | default('150') }}">
-            <br>
-            <label for="filePATH">file_path:</label>
-            <input type="text" id="filePATH" name="filePATH" value="{{ filePATH | default('data/rawData.csv') }}">
-            <br>
-            <label>optimize( 0 / 1 ):</label>
-            <input type="text" id="optimize" name="optimize" value="{{ optimize | default('0') }}">
-            <button type="submit" >Start</button>
+            <p class="text-sm font-semibold uppercase tracking-normal text-teal-700">Full response</p>
+            <h1 class="mt-1 text-3xl font-semibold tracking-normal text-zinc-950">Correction</h1>
         </div>
-    </form>
-    <button onclick="updateImg_json()">refresh Images</button>
-
-
-
-    <div id="content">
-        <div id="status">Initializing </div>
-        <div id="images">
-            <img id="pic1" src="/static/cover.png " alt="Pic 1" >
-            <img id="pic2" src="/static/cover.png " alt="Pic 2">
+        <div class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ring-1" :class="statusClass()">
+            <span class="h-2.5 w-2.5 rounded-full" :class="running ? 'animate-pulse bg-amber-500' : (/failed|error/i.test(status) ? 'bg-red-500' : 'bg-emerald-500')"></span>
+            <span id="status" x-text="status">Initializing</span>
         </div>
     </div>
-    <br>
-    <a href="/"><h2>home</h2></a>
-    <button onclick="shutdownServer()">Close Service</button>
 
-</body>
-</html>
+    <div class="grid gap-3 md:grid-cols-3">
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼作動</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">播放指定測試音、同步錄音，每次錄音轉成 FFT；若 averages 大於 1，會先平均頻域幅度再產生校正曲線。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼用</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">確認檔案路徑與 lower bound，選擇是否沿用舊 CSV 最佳化，設定 averages 後按 Start。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">原理</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">多次 FFT 平均能降低偶發環境噪音；最後以 1 kHz 附近為基準反轉響應，輸出 EQ 補償資料。</p>
+        </section>
+    </div>
 
+    <form id="measure" action="/measure" method="post" @submit="markRunning()" class="grid gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm md:grid-cols-2">
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Standard file</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="text" id="standard" name="standard" value="{{ standard | default('soundFile/noise.wav') }}">
+        </label>
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Lower bound</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="number" id="lower_bound" name="lower_bound" value="{{ lower_bound | default('150') }}">
+        </label>
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Data file</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="text" id="filePATH" name="filePATH" value="{{ filePATH | default('data/rawData.csv') }}">
+        </label>
+        <label class="space-y-1 text-sm font-medium text-zinc-700">
+            <span>Averages</span>
+            <input class="w-full rounded-md border border-zinc-300 px-3 py-2 text-zinc-950 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200" type="number" min="1" max="20" id="repeat_count" name="repeat_count" value="{{ repeat_count | default('3') }}">
+        </label>
+        <fieldset class="space-y-2 text-sm font-medium text-zinc-700">
+            <legend>Optimize</legend>
+            <div class="flex rounded-md border border-zinc-300 p-1">
+                <label class="flex-1">
+                    <input class="peer sr-only" type="radio" name="optimize" value="0" {% if optimize | default('0') in ['0', 0, false, 'False', 'false'] %}checked{% endif %}>
+                    <span class="block rounded px-3 py-2 text-center peer-checked:bg-teal-700 peer-checked:text-white">Off</span>
+                </label>
+                <label class="flex-1">
+                    <input class="peer sr-only" type="radio" name="optimize" value="1" {% if optimize | default('0') in ['1', 1, true, 'True', 'true'] %}checked{% endif %}>
+                    <span class="block rounded px-3 py-2 text-center peer-checked:bg-teal-700 peer-checked:text-white">On</span>
+                </label>
+            </div>
+        </fieldset>
+        <div class="flex flex-wrap gap-3 md:col-span-2">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-teal-700 px-4 py-2 font-semibold text-white shadow-sm hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-300">
+                <span x-show="running" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" aria-hidden="true"></span>
+                Start
+            </button>
+            <button type="button" @click="refreshImages()" class="rounded-md border border-zinc-300 px-4 py-2 font-semibold text-zinc-700 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-300">Refresh Images</button>
+        </div>
+    </form>
 
-<!-- run  updateContent as routine-->
+    <div id="images" class="grid gap-4 lg:grid-cols-2">
+        <figure class="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm">
+            <figcaption class="mb-2 text-sm font-semibold text-zinc-700">White-noise spectrum</figcaption>
+            <img id="pic1" class="aspect-video w-full rounded-md bg-zinc-100 object-contain" :src="images.spectrum || '/static/cover.PNG'" alt="White-noise spectrum">
+        </figure>
+        <figure class="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm">
+            <figcaption class="mb-2 text-sm font-semibold text-zinc-700">Full response</figcaption>
+            <img id="pic2" class="aspect-video w-full rounded-md bg-zinc-100 object-contain" :src="images.full || '/static/cover.PNG'" alt="Full response">
+        </figure>
+    </div>
+</section>
+{% endblock %}

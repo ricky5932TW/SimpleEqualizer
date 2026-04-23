@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}Simple Equalizer{% endblock %}</title>
+    <link rel="icon" href="/static/icon.webp" type="image/webp">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/script.js"></script>
+</head>
+<body class="min-h-screen bg-zinc-50 text-zinc-900">
+    <header class="border-b border-zinc-200 bg-white">
+        <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <a href="/" class="text-2xl font-semibold tracking-normal">Simple Equalizer</a>
+            <nav aria-label="Main navigation">
+                <ul class="flex flex-wrap gap-2 text-sm font-medium">
+                    <li><a class="rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100" href="/full">Correction</a></li>
+                    <li><a class="rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100" href="/limited">Limited Band</a></li>
+                    <li><a class="rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100" href="/white_noise">White Noise</a></li>
+                    <li><a class="rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100" href="/history">History</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main class="mx-auto max-w-6xl px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="mx-auto flex max-w-6xl flex-col gap-3 px-4 pb-8 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between">
+        <a class="text-teal-700 hover:text-teal-900" href="https://github.com/ricky5932TW/SimpleEqualizer" target="_blank" rel="noreferrer">GitHub Repository</a>
+        <button type="button" onclick="shutdownServer()" class="inline-flex w-fit items-center rounded-md border border-red-200 px-3 py-2 font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300">Close Service</button>
+    </footer>
+</body>
+</html>

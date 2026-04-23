@@ -1,25 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Simple Equalizer</title>
-    <!--icon-->
-    <link rel="icon" href="/static/icon.webp" type="image/webp">
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/script.js"></script>
-</head>
-<body>
-    <header>
-        <td><h1>Simple Equalizer</h1></td>
-    </header>
+{% extends "base.html" %}
 
-    <nav>
-        <ul>
-            <li><a href="/full"><h2>Correction</h2></a></li>
-            <li><a href="/limited"><h2>Correction for limited band</h2></a></li>
-            <li><a href="/white_noise"><h2>White Noise Test<h2></a> </li>
-            <li><a href="https://github.com/ricky5932TW/SimpleEqualizer" target="_blank"><h2>GitHub Repository</h2></a></li>
-        </ul>
-    </nav>
-    <button onclick="shutdownServer()">Close Service</button>
-</body>
+{% block title %}Simple Equalizer{% endblock %}
+
+{% block content %}
+<section class="space-y-8">
+    <div class="max-w-3xl">
+        <p class="text-sm font-semibold uppercase tracking-normal text-teal-700">Audio correction workspace</p>
+        <h1 class="mt-2 text-4xl font-semibold tracking-normal text-zinc-950 sm:text-5xl">Simple Equalizer</h1>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-3">
+        <a href="/full" class="flex min-h-32 items-end rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md">
+            <h2 class="text-xl font-semibold text-zinc-950">Correction</h2>
+        </a>
+        <a href="/limited" class="flex min-h-32 items-end rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md">
+            <h2 class="text-xl font-semibold text-zinc-950">Limited Band</h2>
+        </a>
+        <a href="/white_noise" class="flex min-h-32 items-end rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md">
+            <h2 class="text-xl font-semibold text-zinc-950">White Noise</h2>
+        </a>
+    </div>
+</section>
+{% endblock %}

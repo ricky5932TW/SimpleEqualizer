@@ -1,79 +1,105 @@
-function updateImg_json() {
-            var pic1 = document.getElementById('pic1');
-            var pic2 = document.getElementById('pic2');
-
-            fetch('/img')
-                .then(response => response.json())
-
-                .then(data => {
-                    pic1.src = data.spectrum + '?' + new Date().getTime();
-                    pic2.src = data.full + '?' + new Date().getTime();
-                })
-                .catch(error => console.error('Error:', error));
-            console.log("updateImg");
-        }
-
-
-function update_json_limited() {
-            var pic3 = document.getElementById('pic3');
-
-            // destroy the old image
-
-            fetch('/img_limited')
-                .then(response => response.json())
-                // forbidden cache on web browser
-                .then(data => {
-                    pic3.src = data.full + '?' + new Date().getTime();
-                })
-
-                .catch(error => console.error('Error:', error));
-            console.log("updateImg");
-        }
-
-
-
-function updateStatus() {
-            var statusElement = document.getElementById('status');
-            fetch('/status')
-                .then(response => response.json())
-                .then(data => {
-                    statusElement.innerText = data.status;
-                })
-                .catch(error => console.error('Error:', error));
-            console.log("updateStatus");
-        }
-
-function updateInstruction() {
-            var statusElement = document.getElementById('instruction');
-            fetch('/instruction')
-                .then(response => response.json())
-                .then(data => {
-                    statusElement.innerText = data.instruction;
-                })
-                .catch(error => console.error('Error:', error));
-            console.log("updateStatus");
-        }
-
-function shutdownServer() {
-    fetch('/shutdown', {
-        method: 'POST',
-
-    })
-    .then(response => response.text())
-    .then(data => console.log(data))
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-    alert("Service is shutting down");
+function cacheBust(url) {
+    return url ? `${url}?${Date.now()}` : "";
 }
 
+function measurement(options) {
+    return {
+        status: "Initializing",
+        instruction: "",
+        runId: null,
+        running: false,
+        images: {},
+        statusTimer: null,
+        imageTimer: null,
+        instructionTimer: null,
+        start() {
+            this.refreshStatus();
+            this.refreshImages();
+            if (options.instructionUrl) {
+                this.refreshInstruction();
+            }
+            this.statusTimer = setInterval(() => this.refreshStatus(), options.statusMs || 500);
+            this.imageTimer = setInterval(() => this.refreshImages(), options.imageMs || 1000);
+            if (options.instructionUrl) {
+                this.instructionTimer = setInterval(() => this.refreshInstruction(), options.instructionMs || 1000);
+            }
+        },
+        markRunning() {
+            this.running = true;
+            this.status = "Starting...";
+        },
+        stop() {
+            clearInterval(this.statusTimer);
+            clearInterval(this.imageTimer);
+            clearInterval(this.instructionTimer);
+        },
+        isCurrent(data) {
+            if (!data.run_id) {
+                return true;
+            }
+            if (this.runId === null) {
+                this.runId = data.run_id;
+            }
+            return this.runId === data.run_id;
+        },
+        refreshStatus() {
+            fetch("/status")
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.run_id && data.run_id !== this.runId) {
+                        this.runId = data.run_id;
+                    }
+                    this.status = data.status || "";
+                    this.running = !/complete|failed|press start/i.test(this.status);
+                })
+                .catch(() => {
+                    this.status = "Status unavailable";
+                    this.running = false;
+                });
+        },
+        refreshImages() {
+            fetch(options.imageUrl || "/img")
+                .then((response) => response.json())
+                .then((data) => {
+                    if (!this.isCurrent(data)) {
+                        return;
+                    }
+                    Object.keys(data).forEach((key) => {
+                        if (key !== "run_id") {
+                            this.images[key] = cacheBust(data[key]);
+                        }
+                    });
+                })
+                .catch(() => {});
+        },
+        refreshInstruction() {
+            fetch(options.instructionUrl)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (this.isCurrent(data)) {
+                        this.instruction = data.instruction || "";
+                    }
+                })
+                .catch(() => {
+                    this.instruction = "";
+                });
+        },
+        statusClass() {
+            if (/failed|error/i.test(this.status)) {
+                return "bg-red-50 text-red-700 ring-red-200";
+            }
+            if (/complete/i.test(this.status)) {
+                return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+            }
+            return "bg-amber-50 text-amber-800 ring-amber-200";
+        }
+    };
+}
 
-
-
-
-
-
-
-
-
-
+function shutdownServer() {
+    fetch("/shutdown", { method: "POST" })
+        .then((response) => response.text())
+        .then((data) => console.log(data))
+        .catch((error) => console.error("Error:", error));
+    alert("Service is shutting down");
+}

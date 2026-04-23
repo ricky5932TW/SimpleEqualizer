@@ -1,5 +1,23 @@
-
-soundFile/noise60sec.wav
-soundFile/noise60sec.wav
+# Python
 __pycache__/
 *.pyc
+
+# SQLite runtime database
+*.sqlite3
+*.sqlite3-*
+
+# Atomic-write temp files
+*.tmp
+
+# Runtime IPC files (regenerated every run)
+static/run_id.txt
+static/status.txt
+static/temp_img/*.png
+instruction.txt
+
+# Audio scratch files
+soundFile/record.wav
+
+# IDE
+.idea/
+.vscode/

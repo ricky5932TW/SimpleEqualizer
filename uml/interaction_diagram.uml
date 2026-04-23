@@ -1,0 +1,109 @@
+@startuml interaction_diagram
+title SimpleEqualizer — 功能互動圖（分層視角）
+
+skinparam componentStyle rectangle
+
+actor User as "使用者"
+
+package "Presentation Layer\n(Browser)" as Presentation {
+    component [Alpine.js\n互動狀態] as Alpine
+    component [Tailwind CSS\n樣式] as Tailwind
+    component [Jinja Template\nbase / full / limited / white_noise / history] as Templates
+    component [status polling\nimg polling] as Polling
+}
+
+package "Web Layer\n(Flask, web_gui.py)" as WebLayer {
+    component [Routes\n/ · /full · /limited · /white_noise\n/measure · /measure_limited · /white_noise_test\n/status · /instruction · /img · /img_limited\n/history · /shutdown] as Routes
+    component [Process Spawner\nmultiprocessing.Process] as Spawner
+}
+
+package "Service Layer\n(measurement.py)" as ServiceLayer {
+    component [MeasurementService\nrun_measurement / run_measurement_limited / white_noise_test] as Service
+}
+
+package "Core Logic\n(scripts.py + package/)" as Core {
+    component [SimpleEqualizer\nfacade] as Facade
+    component [SoundAnalyzer\nrecord · FFT · export] as Analyzer
+    component [TuningInstructor\nband gain · instruction] as Instructor
+    component [NoiseGenerator\nSweepGenerator] as Generators
+}
+
+package "Side Effects\n(I/O)" as IO {
+    database "Filesystem" as FS {
+        folder "status.txt / instruction.txt\n(IPC, 計畫 1 原子寫入)" as StatusFiles
+        folder "soundFile/*.wav\n(輸入訊號 + 錄音)" as SoundFiles
+        folder "data/*.csv\n(量測結果)" as CSVFiles
+        folder "temp_img/*.png\n(繪圖輸出)" as ImgFiles
+    }
+    database "MySQL\n(計畫 3, optional)" as MySQL {
+        folder "measurements table\n(單表：時間/類型/參數/狀態/圖片路徑)" as MeasurementsTable
+    }
+}
+
+package "History Module\n(package/history, 計畫 3 新增)" as HistoryLayer {
+    component [History\nrecord_start / record_finish / list_recent] as History
+}
+
+' --- 使用者互動 ---
+User --> Alpine : 點擊按鈕 / 輸入
+User <-- Templates : 看到頁面
+
+' --- Presentation 內部 ---
+Alpine --> Polling : 啟動 polling
+Tailwind -[hidden]- Alpine
+Templates -[hidden]- Alpine
+
+' --- 前端 ↔ Web ---
+Polling --> Routes : GET /status · /img · /instruction
+Alpine --> Routes : POST /measure · /measure_limited · /white_noise_test
+Routes --> Templates : render
+
+' --- Web → Service ---
+Routes --> Spawner : 啟動子程序
+Spawner --> Service : call static method
+
+' --- Service → Core ---
+Service --> Facade : 呼叫量測流程
+Facade --> Analyzer : play_and_record · fft · saveRawData
+Facade --> Instructor : loadCSV · printInstruction
+
+' --- Core → Side effects ---
+Analyzer --> SoundFiles : 讀 noise.wav / 寫 record.wav
+Analyzer --> CSVFiles : 寫 rawData.csv / separateData.csv
+Analyzer --> ImgFiles : 寫 full.png / Spectrum.png
+Analyzer --> StatusFiles : 寫 status.txt (計畫 1 原子)
+Instructor --> CSVFiles : 讀 separateData.csv
+Instructor --> StatusFiles : 寫 instruction.txt
+
+' --- Web → Side effects ---
+Routes --> StatusFiles : 讀 status.txt / instruction.txt\n回傳 JSON
+
+' --- History 整合（計畫 3）---
+Service ..> History : record_start (開始)\nrecord_finish (結束)
+Routes ..> History : list_recent (/history 頁)
+History ..> MeasurementsTable : INSERT / UPDATE / SELECT
+
+note bottom of HistoryLayer
+  非關鍵組件：
+  · MYSQL_* env 缺失 → 全部方法 no-op
+  · 連線失敗 → warning 後回傳 None/[]
+  · 量測流程永不因此中斷
+end note
+
+note top of Presentation
+  計畫 2：
+  · CDN 引入 Alpine + Tailwind（零建置）
+  · base.html 繼承共用 nav/footer
+  · 按鈕分 primary/secondary/danger
+  · Spinner + 狀態燈
+  · /history 頁新增
+end note
+
+note right of IO
+  計畫 1：
+  · status.txt 原子寫入（*.tmp → os.replace）
+  · 每次量測前清理 temp_img/ 與 instruction.txt
+  · JSON 回傳附加 run_id，前端過濾舊 run
+end note
+
+@enduml

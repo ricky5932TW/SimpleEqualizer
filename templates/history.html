@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}History - Simple Equalizer{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <div>
+        <p class="text-sm font-semibold uppercase tracking-normal text-teal-700">Latest 20</p>
+        <h1 class="mt-1 text-3xl font-semibold tracking-normal text-zinc-950">Measurement History</h1>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-3">
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼作動</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">每次量測開始與結束都寫入 SQLite，預設檔案在 {{ database_path }}。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">怎麼用</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">量測完成後回到此頁即可看到最近 20 筆；可用 SQLITE_PATH 環境變數改資料庫位置。</p>
+        </section>
+        <section class="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 class="text-sm font-semibold text-zinc-950">原理</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">SQLite 是單檔資料庫，適合本機工具保存歷史，不需要另外啟動資料庫服務。</p>
+        </section>
+    </div>
+
+    {% if records %}
+    <div class="overflow-x-auto rounded-lg border border-zinc-200 bg-white shadow-sm">
+        <table class="min-w-full divide-y divide-zinc-200 text-left text-sm">
+            <thead class="bg-zinc-100 text-xs uppercase tracking-normal text-zinc-600">
+            <tr>
+                <th class="px-4 py-3">ID</th>
+                <th class="px-4 py-3">Started</th>
+                <th class="px-4 py-3">Finished</th>
+                <th class="px-4 py-3">Type</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Params</th>
+                <th class="px-4 py-3">Images</th>
+                <th class="px-4 py-3">Note</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+            {% for record in records %}
+            <tr>
+                <td class="px-4 py-3 font-medium text-zinc-950">{{ record.id }}</td>
+                <td class="px-4 py-3">{{ record.started_at }}</td>
+                <td class="px-4 py-3">{{ record.finished_at or '' }}</td>
+                <td class="px-4 py-3">{{ record.run_type }}</td>
+                <td class="px-4 py-3">
+                    <span class="rounded-md px-2 py-1 text-xs font-semibold {% if record.status == 'ok' %}bg-emerald-50 text-emerald-700{% elif record.status == 'error' %}bg-red-50 text-red-700{% else %}bg-amber-50 text-amber-800{% endif %}">{{ record.status }}</span>
+                </td>
+                <td class="max-w-xs truncate px-4 py-3">{{ record.params_json or '' }}</td>
+                <td class="max-w-xs truncate px-4 py-3">{{ record.image_paths or '' }}</td>
+                <td class="max-w-xs truncate px-4 py-3">{{ record.note or '' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif database_enabled %}
+    <div class="rounded-lg border border-zinc-200 bg-white p-6 text-zinc-600 shadow-sm">SQLite history is ready. No measurement records yet.</div>
+    {% else %}
+    <div class="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-800">SQLite history unavailable.</div>
+    {% endif %}
+</section>
+{% endblock %}

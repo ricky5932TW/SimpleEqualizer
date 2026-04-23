@@ -1,0 +1,30 @@
+services:
+  simpleequalizer:
+    build: .
+    image: simpleequalizer:local
+    ports:
+      - "5000:5000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "5000"
+      FLASK_DEBUG: "0"
+      OPEN_BROWSER: "0"
+      MPLBACKEND: Agg
+      SQLITE_PATH: /app/data/simpleequalizer.sqlite3
+    volumes:
+      - simpleequalizer-data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/status', timeout=2).read()\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # For Linux hosts with ALSA devices, audio capture/playback can be tried by
+    # uncommenting the lines below. Docker Desktop/WSL audio support varies.
+    # devices:
+    #   - "/dev/snd:/dev/snd"
+    # group_add:
+    #   - audio
+
+volumes:
+  simpleequalizer-data:

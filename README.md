@@ -87,6 +87,104 @@ The app opens `http://127.0.0.1:5000/` automatically. Measurement history lands 
 
 ---
 
+## Configuration
+
+The local defaults are tuned for running `python web_gui.py` from your desktop. Containers should override these environment variables:
+
+| Variable | Default | Use |
+| --- | --- | --- |
+| `HOST` | `127.0.0.1` | Flask bind address. Use `0.0.0.0` in containers. |
+| `PORT` | `5000` | Flask port. |
+| `FLASK_DEBUG` | `1` | Set `0` in Docker. |
+| `OPEN_BROWSER` | `1` | Set `0` in Docker so the container does not try to open a browser. |
+| `SQLITE_PATH` | `data/simpleequalizer.sqlite3` | SQLite history location. |
+
+---
+
+## Docker
+
+Build and run the web app:
+
+```bash
+docker build -t simpleequalizer:local .
+docker run --rm -p 5000:5000 \
+  -e HOST=0.0.0.0 \
+  -e OPEN_BROWSER=0 \
+  -e FLASK_DEBUG=0 \
+  -v simpleequalizer-data:/app/data \
+  simpleequalizer:local
+```
+
+Open `http://localhost:5000/`. This smoke-run verifies the Flask UI, status endpoint, and SQLite history path.
+
+Docker Compose does the same thing with a named data volume:
+
+```bash
+docker compose up --build
+```
+
+Stop it with `Ctrl+C`, then clean up the container with:
+
+```bash
+docker compose down
+```
+
+### Audio in Docker/WSL
+
+Simple Equalizer measures by playing audio with `pygame` and recording with `PyAudio`. Docker Desktop and WSL do not always expose Windows speaker/microphone devices to Linux containers, so measurement inside Docker is best effort.
+
+For WSLg audio, run Compose from a WSL terminal, not from PowerShell. The override mounts the WSLg PulseAudio socket and routes ALSA/SDL audio through it:
+
+```bash
+cd /mnt/d/SimpleEqualizer
+docker compose -f compose.yaml -f compose.wsl-audio.yaml up --build
+```
+
+Then open `http://localhost:5000/` from Windows. This requires WSLg to expose `/mnt/wslg/PulseServer` and Windows microphone permission to allow input from WSL.
+
+On Linux hosts where ALSA devices exist, try:
+
+```bash
+docker run --rm -it -p 5000:5000 \
+  --device /dev/snd \
+  --group-add audio \
+  -e HOST=0.0.0.0 \
+  -e OPEN_BROWSER=0 \
+  -e FLASK_DEBUG=0 \
+  -v simpleequalizer-data:/app/data \
+  simpleequalizer:local
+```
+
+If `PyAudio` cannot find an input device in Docker/WSL, run the measurement with native Python on Windows and use Docker for web smoke-tests or packaging.
+
+---
+
+## GitHub release and GHCR image
+
+The container workflow publishes to GitHub Container Registry when a GitHub Release is published.
+
+Recommended release flow with GitHub Desktop:
+
+1. Review the changed files in GitHub Desktop.
+2. Commit the Docker and release documentation changes.
+3. Push `main` to GitHub.
+4. On GitHub, open **Releases** -> **Draft a new release**.
+5. Create tag `v0.1.2-alpha` from `main`.
+6. Use release title `v0.1.2-alpha`.
+7. Mark it as a prerelease.
+8. Publish the release.
+9. Wait for the **Publish Container** GitHub Actions workflow to finish.
+
+The prerelease image will be:
+
+```bash
+docker pull ghcr.io/ricky5932tw/simpleequalizer:v0.1.2-alpha
+```
+
+Prereleases do not publish `latest`; full releases will also publish `ghcr.io/ricky5932tw/simpleequalizer:latest`.
+
+---
+
 ## Architecture
 
 ```text

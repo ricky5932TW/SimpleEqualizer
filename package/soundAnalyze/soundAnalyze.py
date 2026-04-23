@@ -48,15 +48,26 @@ class SoundAnalyzer():
     def play_and_record(self):
         '''play noise.wav and record the sound at the same time by multithreading'''
         print('play_and_record start')
+        errors = []
+
+        def run_step(name, action):
+            try:
+                action()
+            except Exception as exc:
+                errors.append((name, exc))
+
         # play noise.wav and record the sound at the same time by multiprocessing
-        t_play = threading.Thread(target=self.play)  # play noise.wav
-        t_record = threading.Thread(target=self.record_audio)  # record the sound
+        t_play = threading.Thread(target=run_step, args=('playback', self.play))  # play noise.wav
+        t_record = threading.Thread(target=run_step, args=('recording', self.record_audio))  # record the sound
 
         t_play.start()  # start the thread
         t_record.start()  # start the thread
 
         t_play.join()  # wait for the thread to finish
         t_record.join()  # wait for the thread to finish
+        if errors:
+            details = '; '.join(f'{name}: {exc}' for name, exc in errors)
+            raise RuntimeError(f'Audio play/record failed: {details}')
         print('playandRecord end')
 
     def play(self):

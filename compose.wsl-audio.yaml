@@ -1,0 +1,8 @@
+services:
+  simpleequalizer:
+    environment:
+      ALSA_CONFIG_PATH: /etc/asound.conf
+      PULSE_SERVER: unix:/mnt/wslg/PulseServer
+      SDL_AUDIODRIVER: pulse
+    volumes:
+      - /mnt/wslg:/mnt/wslg:ro

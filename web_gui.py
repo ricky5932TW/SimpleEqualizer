@@ -20,6 +20,28 @@ from runtime_state import (
 app = Flask(__name__)
 
 
+def env_flag(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
+def browser_url(host, port):
+    browser_host = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
+    return f"http://{browser_host}:{port}/"
+
+
 def finish_measurement(process):
     process.join()
     if process.exitcode == 0:
@@ -152,6 +174,13 @@ if __name__ == '__main__':
     write_status('press start to begin')
     write_instruction(' ')
 
-    webbrowser.open('http://127.0.0.1:5000/')
-    time.sleep(0.2)
-    app.run(debug=True)
+    host = os.getenv("HOST", "127.0.0.1")
+    port = env_int("PORT", 5000)
+    debug = env_flag("FLASK_DEBUG", True)
+    open_browser = env_flag("OPEN_BROWSER", True)
+
+    if open_browser and (not debug or os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
+        webbrowser.open(browser_url(host, port))
+        time.sleep(0.2)
+
+    app.run(host=host, port=port, debug=debug)

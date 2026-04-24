@@ -9,7 +9,7 @@
 
 Plays a test signal, records the result through a microphone, averages multiple FFTs to reduce noise, and outputs per-band gain corrections you can dial directly into Windows' EQ. No DSP plugin, no driver hacks — just numbers for the sliders you already have.
 
-![Simple Equalizer result preview](result/best_result.png)
+![Simple Equalizer hero](https://github.com/user-attachments/assets/4d9f3f56-1c24-4b69-977c-2b59aff344a3)
 
 ---
 

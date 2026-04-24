@@ -6,7 +6,7 @@ on:
       - published
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
@@ -20,6 +20,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Upload Dockerfile to release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Dockerfile
+          overwrite_files: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

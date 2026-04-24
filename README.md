@@ -161,7 +161,10 @@ If `PyAudio` cannot find an input device in Docker/WSL, run the measurement with
 
 ## GitHub release and GHCR image
 
-The container workflow publishes to GitHub Container Registry when a GitHub Release is published.
+When a GitHub Release is published, the container workflow:
+
+- publishes the Docker image to GitHub Container Registry (Packages)
+- uploads the repository `Dockerfile` as a Release asset
 
 Recommended release flow with GitHub Desktop:
 

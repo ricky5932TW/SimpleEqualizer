@@ -1,10 +1,15 @@
 # Simple Equalizer
 
+![Python](https://img.shields.io/badge/Python-3-blue?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-Web%20UI-black?logo=flask)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
 **A local web tool that measures your speaker's frequency response and tells you exactly how to set your PC's built-in equalizer.**
 
 Plays a test signal, records the result through a microphone, averages multiple FFTs to reduce noise, and outputs per-band gain corrections you can dial directly into Windows' EQ. No DSP plugin, no driver hacks — just numbers for the sliders you already have.
 
-<!-- TODO: hero screenshot or short gif of the web UI (homepage → running a measurement → result spectrum) -->
+![Simple Equalizer result preview](result/best_result.png)
 
 ---
 

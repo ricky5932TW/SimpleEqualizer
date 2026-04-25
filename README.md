@@ -3,7 +3,6 @@
 ![Python](https://img.shields.io/badge/Python-3-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-Web%20UI-black?logo=flask)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 **A local web tool that measures your speaker's frequency response and tells you exactly how to set your PC's built-in equalizer.**
 
@@ -250,6 +249,3 @@ SimpleEqualizer/
 
 ---
 
-## License
-
-MIT — see [LICENSE](LICENSE).
